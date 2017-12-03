@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-
+    // THIS IS A TEST
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSavedSongs, itemSettings;
     Toolbar toolbar;
