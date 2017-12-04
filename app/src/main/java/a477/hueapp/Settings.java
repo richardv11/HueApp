@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.Toast;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener{
 
@@ -53,7 +52,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         Intent intent;
         if (view == itemHome) {
             // Home
-            intent = new Intent(this, MainActivity.class);
+            intent = new Intent(this, HomeActivity.class);
             startActivity(intent);
 
         }

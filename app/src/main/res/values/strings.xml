@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">HueApp</string>
+    <string name="connecting">Connecting …</string>
+    <string name="btn_ok">OK</string>
+    <string name="search_progress">Searching …</string>
+    <string name="txt_click_random_button">Click the Random Lights Button to set your lamps to random colours.</string>
+    <string name="btn_random">Random Lights</string>
+    <string name="txt_select_smartbridge">Available Access Points</string>
+    <string name="no_bridge">No Bridge Found.   Start Bridge Search</string>
+    <string name="press_pushlink_button">Press the link button on the bridge</string>
+    <string name="menu_refresh">Refresh</string>
+    <string name="menu_find_bridge">Find new Bridge</string>
+    <string name="txt_pushlink">Pushlink</string>
+    <string name="title_error">Error</string>
 </resources>
