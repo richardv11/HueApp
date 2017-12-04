@@ -18,7 +18,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Settings"></activity>
+        <activity
+            android:name=".Settings"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".SavedSongs"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

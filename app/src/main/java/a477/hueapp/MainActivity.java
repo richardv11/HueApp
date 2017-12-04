@@ -1,5 +1,6 @@
 package a477.hueapp;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -51,17 +52,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // onClick for menu options
     @Override
     public void onClick(View view) {
-        if (view == itemHome) {
-            // Home
-            Toast.makeText(getApplicationContext(), "Home tapped", Toast.LENGTH_SHORT).show();
-
-        }else if (view == itemSettings) {
+        Intent intent;
+        if (view == itemSettings) {
             // Settings
-            Toast.makeText(getApplicationContext(), "Settings tapped", Toast.LENGTH_SHORT).show();
-        }else if(view == itemSavedSongs){
+            intent = new Intent(this, Settings.class);
+            startActivity(intent);
+        }
+        if (view == itemSavedSongs) {
             // Saved Songs
-            Toast.makeText(getApplicationContext(), "Saved Songs tapped", Toast.LENGTH_SHORT).show();
+            intent = new Intent(this, SavedSongs.class);
+            startActivity(intent);
         }
         resideMenu.closeMenu();
     }
+
 }
