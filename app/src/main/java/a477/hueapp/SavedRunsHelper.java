@@ -63,7 +63,6 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
         HashMap<String, String> toReturn = new HashMap<>();
 
         String[] projection = {
-                SavedRunEntry.RUN_ID,
                 SavedRunEntry.RUN_NAME,
                 SavedRunEntry.RUN_PATTERN
         };
@@ -75,9 +74,8 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
 
         if (cursor.getCount() == 1) {
             while (cursor.moveToNext()) {
-                toReturn.put(SavedRunEntry.RUN_ID, cursor.getString(cursor.getColumnIndex(SavedRunEntry.RUN_ID)));
-                toReturn.put(SavedRunEntry.RUN_NAME, cursor.getInt(cursor.getColumnIndex(SavedRunEntry.RUN_NAME)) + "");
-                toReturn.put(SavedRunEntry.RUN_PATTERN, cursor.getInt(cursor.getColumnIndex(SavedRunEntry.RUN_PATTERN)) + "");
+                toReturn.put(SavedRunEntry.RUN_NAME, cursor.getString(cursor.getColumnIndex(SavedRunEntry.RUN_NAME)) + "");
+                toReturn.put(SavedRunEntry.RUN_PATTERN, cursor.getString(cursor.getColumnIndex(SavedRunEntry.RUN_PATTERN)) + "");
             }
             cursor.close();
             return toReturn;
@@ -86,11 +84,10 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    public ArrayList<String> getAllSavedRuns(SQLiteDatabase db) {
+    public ArrayList<String> getAllSavedRunNames(SQLiteDatabase db) {
         ArrayList<String> toReturn = new ArrayList<>();
 
         String[] projection = {
-                SavedRunEntry.RUN_ID,
                 SavedRunEntry.RUN_NAME
         };
         Cursor cursor = db.query(SavedRunEntry.TABLE_NAME, projection, null, null, null, null, null);
@@ -117,5 +114,4 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
-
 }
