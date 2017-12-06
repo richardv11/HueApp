@@ -66,7 +66,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent;
         if (view == itemSettings) {
             // Settings
-            intent = new Intent(this, MainActivity.class);
+            intent = new Intent(this, Settings.class);
             startActivity(intent);
         }
         if (view == itemSavedSongs) {

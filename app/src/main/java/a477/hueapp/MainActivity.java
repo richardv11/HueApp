@@ -1,5 +1,6 @@
 package a477.hueapp;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.philips.lighting.hue.sdk.PHAccessPoint;
 import com.philips.lighting.hue.sdk.PHBridgeSearchManager;
@@ -33,9 +35,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private boolean lastSearchWasIPScan = false;
 
+    @TargetApi(21)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
 
         // Gets an instance of the Hue SDK.
         phHueSDK = PHHueSDK.create();
@@ -64,17 +68,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 phHueSDK.connect(lastAccessPoint);
             }
         } else {  // First time use, so perform a bridge search.
-            setContentView(R.layout.bridgelistlinear);
-
-            adapter = new AccessPointListAdapter(getApplicationContext(), phHueSDK.getAccessPointsFound());
-
-            ListView accessPointList = (ListView) findViewById(R.id.bridge_list);
-            accessPointList.setOnItemClickListener(this);
-            accessPointList.setAdapter(adapter);
-
-            doBridgeSearch();
+            // Display welcome screen
+            setContentView(R.layout.activity_welcome);
         }
-
     }
 
     @Override
@@ -104,15 +100,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         adapter.updateData(phHueSDK.getAccessPointsFound());
                     }
                 });
-
             }
-
         }
 
         @Override
         public void onCacheUpdated(List<Integer> arg0, PHBridge bridge) {
             Log.w(TAG, "On CacheUpdated");
-
         }
 
         @Override
@@ -131,7 +124,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Log.w(TAG, "Authentication Required.");
             phHueSDK.startPushlinkAuthentication(accessPoint);
             startActivity(new Intent(MainActivity.this, PHPushlinkActivity.class));
-
         }
 
         @Override
@@ -147,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     phHueSDK.getDisconnectedAccessPoint().remove(i);
                 }
             }
-
         }
 
         @Override
@@ -192,7 +183,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         }
                     });
                 }
-
 
             }
         }
@@ -262,6 +252,25 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+    }
+
+    public void infoButton(View view){
+        String message = "It looks like a new connection is required, simply tap the button to find a new one";
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    }
+
+    public void connectButton(View view){
+
+        // Switch to the layout for the bridge list
+        setContentView(R.layout.bridgelistlinear);
+
+        adapter = new AccessPointListAdapter(getApplicationContext(), phHueSDK.getAccessPointsFound());
+
+        ListView accessPointList = (ListView) findViewById(R.id.bridge_list);
+        accessPointList.setOnItemClickListener(this);
+        accessPointList.setAdapter(adapter);
+
+        doBridgeSearch();
     }
 
 }
