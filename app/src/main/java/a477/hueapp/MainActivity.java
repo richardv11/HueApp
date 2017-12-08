@@ -40,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         // Gets an instance of the Hue SDK.
         phHueSDK = PHHueSDK.create();
 
@@ -70,6 +69,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         } else {  // First time use, so perform a bridge search.
             // Display welcome screen
             setContentView(R.layout.activity_welcome);
+
+            // Debugging purposes...
+            findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startMainActivity();
+                }
+            });
+
         }
     }
 
