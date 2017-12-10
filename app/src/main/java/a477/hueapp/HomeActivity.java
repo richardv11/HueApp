@@ -7,17 +7,33 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.philips.lighting.hue.sdk.PHHueSDK;
 
 import a477.hueapp.hue.HueHelper;
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.AudioEvent;
+import be.tarsos.dsp.AudioProcessor;
+import be.tarsos.dsp.io.android.AndroidAudioPlayer;
+import be.tarsos.dsp.io.android.AudioDispatcherFactory;
+import be.tarsos.dsp.pitch.PitchDetectionHandler;
+import be.tarsos.dsp.pitch.PitchDetectionResult;
+import be.tarsos.dsp.pitch.PitchProcessor;
 
 public class HomeActivity extends AppCompatActivity implements View.OnClickListener{
 
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSavedSongs, itemSettings;
     Toolbar toolbar;
+
+    // Tarsos stuff
+    AudioDispatcher dispatcher;
+    PitchDetectionHandler handler;
+    AudioProcessor processor;
+    PlayerState state;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +74,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 resideMenu.openMenu(ResideMenu.DIRECTION_LEFT);
             }
         });
+
+        if (savedInstanceState == null) {
+            state = PlayerState.NO_FILE_LOADED;
+        } else {
+            state = PlayerState.FILE_LOADED;
+        }
+
     }
 
     // onClick for menu options
@@ -80,5 +103,25 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     public void test(View view) {
         HueHelper hh = new HueHelper();
         hh.toggleLightOn(hh.getLights().get("3"));
+    }
+
+    public void play(View view) {
+        this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+        this.handler = new PitchDetectionHandler() {
+            @Override
+            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+                final float pitchInHz = result.getPitch();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        HueHelper helper = new HueHelper();
+                        // run some type of algorithm to determine the strength of the light / color / etc.
+                    }
+                });
+            }
+        };
+        this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, handler);
+        dispatcher.addAudioProcessor(processor);
+        new Thread(dispatcher,"Audio Dispatcher").start();
     }
 }
