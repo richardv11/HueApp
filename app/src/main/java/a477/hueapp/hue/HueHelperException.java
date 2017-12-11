@@ -1,6 +1,6 @@
 package a477.hueapp.hue;
 
-class HueHelperException extends Exception {
+public class HueHelperException extends Exception {
 
     String errorMsg;
 

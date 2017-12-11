@@ -1,23 +1,23 @@
 package a477.hueapp;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
-import com.philips.lighting.hue.sdk.PHHueSDK;
+import com.philips.lighting.model.PHLight;
 
 import a477.hueapp.hue.HueHelper;
+import a477.hueapp.hue.HueHelperException;
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
-import be.tarsos.dsp.io.android.AndroidAudioPlayer;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
@@ -29,11 +29,18 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     private ResideMenuItem itemHome, itemSavedSongs, itemSettings;
     Toolbar toolbar;
 
+    HueHelper hue;
+
     // Tarsos stuff
+    String[] perms = {"android.permission.RECORD_AUDIO"};
+    int permsRequestCode = 200;
     AudioDispatcher dispatcher;
     PitchDetectionHandler handler;
     AudioProcessor processor;
-    PlayerState state;
+    static PlayerState state;
+    Thread thread;
+    float lastPitch;
+    HueProcessor hueProcessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +88,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             state = PlayerState.FILE_LOADED;
         }
 
+        this.hue = new HueHelper();
+        this.hueProcessor = new HueProcessor();
     }
 
     // onClick for menu options
@@ -105,23 +114,112 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         hh.toggleLightOn(hh.getLights().get("3"));
     }
 
+    @TargetApi(23)
     public void play(View view) {
-        this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
-        this.handler = new PitchDetectionHandler() {
-            @Override
-            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
-                final float pitchInHz = result.getPitch();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        HueHelper helper = new HueHelper();
-                        // run some type of algorithm to determine the strength of the light / color / etc.
-                    }
-                });
+        if (state != PlayerState.PLAYING) {
+            requestPermissions(perms, permsRequestCode);
+            state = PlayerState.PLAYING;
+            this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+            this.handler = new PitchDetectionHandler() {
+                @Override
+                public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+                    final float pitchInHz = result.getPitch();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // this should probably only run in every X intervals...
+                            try {
+                                if (state != PlayerState.PLAYING) {
+                                    throw new InterruptedException("Thread is stopped/paused");
+                                }
+                                Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                                try {
+                                    process(pitchInHz, lastPitch);
+                                } catch (Exception e) {
+                                    // when lastPitch isn't initialized, forgot the exception name
+                                    process(pitchInHz, (float) 0.0);
+                                }
+                                lastPitch = pitchInHz;
+                                // do the hue stuff here
+                            } catch (InterruptedException e) {
+                                Log.e("TARSOS", "THREAD STOPPED");
+                                dispatcher.stop();
+                                Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                                Log.i("TARSOS_STATE", state.toString());
+                            }
+                        }
+                    });
+                }
+            };
+            this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, handler);
+            dispatcher.addAudioProcessor(processor);
+            this.thread = new Thread(dispatcher, "Audio Dispatcher");
+            this.thread.start();
+        }
+    }
+
+    /**
+     * Pause the currently changing hue-light
+     * Stops the thread
+     * @param view
+     */
+    public void pause(View view) {
+        if (this.state == PlayerState.PLAYING) {
+            thread.interrupt();
+        }
+
+        // pause hue_light should be done in the run() by not doing anything
+        this.state = PlayerState.PAUSED;
+    }
+
+    /**
+     * Stops the currently changing hue-light (disables)
+     * Stops the thread
+     */
+    public void stop(View view) {
+        if (this.state == PlayerState.PLAYING) {
+            thread.interrupt();
+        }
+
+        if (this.state != PlayerState.STOPPED) {
+            try {
+                hue.toggleLightOn(hue.getNextLight());
+            } catch (HueHelperException e) {
+                e.printStackTrace();
             }
-        };
-        this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, handler);
-        dispatcher.addAudioProcessor(processor);
-        new Thread(dispatcher,"Audio Dispatcher").start();
+        }
+
+        this.state = PlayerState.STOPPED;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+
+        switch(permsRequestCode){
+
+            case 200:
+
+                boolean audioAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
+
+                break;
+
+        }
+
+    }
+
+    private void process(float prev, float curr) {
+        // set brightness : sets brightness
+        // set hue : sets Hue
+        // set saturation : sets Saturation
+        // set XY : sets XY coordinates in color space
+        // set CT : sets MIRED COLOR TEMP
+
+        PHLight lNext = null;
+        try {
+            lNext = hue.getNextLight();
+            // call hueProcessor.process with the pitch and light
+        } catch (HueHelperException e) {
+            e.printStackTrace();
+        }
     }
 }
