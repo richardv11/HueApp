@@ -29,6 +29,7 @@ public class HueHelper {
 
         // TESTING PURPOSES
         lightsInUse.add(getLights().get("3"));
+        lightsInUse.add(getLights().get("12"));
     }
 
     /**
@@ -47,10 +48,11 @@ public class HueHelper {
      * @throws HueHelperException Thrown if there are no lights in use
      */
     public PHLight getNextLight() throws HueHelperException {
-        if (lightsInUse.size() <= 0) throw new HueHelperException("No lights in use");
+        if (lightsInUse.size() < 0) throw new HueHelperException("No lights in use");
         else {
-            lastLight = lastLight >= lightsInUse.size() ? lastLight++ : 0;
-            return lightsInUse.get(lastLight);
+            if(lastLight >= lightsInUse.size())
+                lastLight=0;
+            return lightsInUse.get(lastLight++);
         }
     }
 
