@@ -10,9 +10,19 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.philips.lighting.model.PHLight;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
@@ -31,6 +41,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     Toolbar toolbar;
 
     HueHelper hueHelper;
+
+    // Map of lights, key is the ID
+    Map<String, PHLight> lightsMap;
+    // Custom map of lights, key is the light name
+    Map<String, PHLight> customLightsMap = new HashMap<>();
+    ListView listView;
+
 
     // Tarsos stuff
     String[] perms = {"android.permission.RECORD_AUDIO"};
@@ -93,6 +110,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         this.hueHelper = new HueHelper();
         this.hueProcessor = new HueProcessor();
+
+        // Grab the lights into a map, and populate list using popLightList().
+        lightsMap = hueHelper.getLights();
+        // listView adapter is set in popLightList()
+        listView = (ListView) findViewById(R.id.listview);
+        popLightList();
+
     }
 
     // onClick for menu options
@@ -250,4 +274,35 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    public void onBackPressed(){
+
+    }
+
+    // Populate the list view with the lights, creates customLightMap
+    private void popLightList(){
+        Iterator<String> lightIDs = lightsMap.keySet().iterator();
+        String lightID;
+        PHLight light;
+        final ArrayList<String> lightNames = new ArrayList<String>();
+        while(lightIDs.hasNext()){
+            lightID = lightIDs.next();
+            light = lightsMap.get(lightID);
+            customLightsMap.put(light.getName(), light);
+            lightNames.add(light.getName());
+        }
+
+        // Set the array adapater for the lsit
+        listView.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.line, lightNames));
+        // Set the listener for the list
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                PHLight currLight = customLightsMap.get(lightNames.get(position));
+
+                Toast.makeText(getApplicationContext(), currLight.getLuminaireUniqueId(), Toast.LENGTH_SHORT ).show();
+                return false;
+            }
+        });
+    }
 }
