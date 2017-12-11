@@ -29,7 +29,7 @@ class HueProcessor {
 
     // list of HueHelper functions
     // set brightness : sets brightness
-    // set hue : sets Hue
+    // set hueHelper : sets Hue
     // set saturation : sets Saturation
     // set XY : sets XY coordinates in color space
     // set CT : sets MIRED COLOR TEMP

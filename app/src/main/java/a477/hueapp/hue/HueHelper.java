@@ -26,6 +26,9 @@ public class HueHelper {
         phHueSDK = PHHueSDK.getInstance();
         lightsInUse = new ArrayList<>();
         lastLight = 0;
+
+        // TESTING PURPOSES
+        lightsInUse.add(getLights().get("3"));
     }
 
     /**

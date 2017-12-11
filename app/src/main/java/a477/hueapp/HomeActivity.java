@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.philips.lighting.model.PHLight;
 
@@ -23,13 +24,13 @@ import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 
-public class HomeActivity extends AppCompatActivity implements View.OnClickListener{
+public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
 
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSavedSongs, itemSettings;
     Toolbar toolbar;
 
-    HueHelper hue;
+    HueHelper hueHelper;
 
     // Tarsos stuff
     String[] perms = {"android.permission.RECORD_AUDIO"};
@@ -41,6 +42,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     Thread thread;
     float lastPitch;
     HueProcessor hueProcessor;
+    private double rms;
+    private float pitchInHz;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +91,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             state = PlayerState.FILE_LOADED;
         }
 
-        this.hue = new HueHelper();
+        this.hueHelper = new HueHelper();
         this.hueProcessor = new HueProcessor();
     }
 
@@ -110,8 +113,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void test(View view) {
+        if (state != PlayerState.PLAYING)
+            play(view);
         HueHelper hh = new HueHelper();
-        hh.toggleLightOn(hh.getLights().get("3"));
+//        hh.toggleLightOn(hh.getLights().get("3"));
+        try {
+            hh.setHue(hh.getLights().get("3"), (int) pitchInHz);
+            hh.setBrightness(hh.getLights().get("3"), (int) (rms * 1000) % 256);
+            hh.setSaturation(hh.getLights().get("3"), 150);
+        } catch (HueHelperException e) {
+            e.printStackTrace();
+        }
     }
 
     @TargetApi(23)
@@ -119,39 +131,53 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         if (state != PlayerState.PLAYING) {
             requestPermissions(perms, permsRequestCode);
             state = PlayerState.PLAYING;
-            this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
+            // 22050, 1024, 0
+            this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000,8000, 0);
             this.handler = new PitchDetectionHandler() {
                 @Override
                 public void handlePitch(PitchDetectionResult result, AudioEvent e) {
-                    final float pitchInHz = result.getPitch();
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            // this should probably only run in every X intervals...
-                            try {
-                                if (state != PlayerState.PLAYING) {
-                                    throw new InterruptedException("Thread is stopped/paused");
-                                }
-                                Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                    pitchInHz = result.getPitch();
+                    rms = (e.getRMS() * 1000) % 256;
+                    if (pitchInHz != -1) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // this should probably only run in every X intervals...
                                 try {
-                                    process(pitchInHz, lastPitch);
-                                } catch (Exception e) {
-                                    // when lastPitch isn't initialized, forgot the exception name
-                                    process(pitchInHz, (float) 0.0);
+                                    if (state != PlayerState.PLAYING) {
+                                        throw new InterruptedException("Thread is stopped/paused");
+                                    }
+                                    Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                                    Log.i("TARSOS_RMS", String.valueOf(rms));
+                                    try {
+                                        PHLight light = hueHelper.getNextLight();
+                                        if(!light.getLastKnownLightState().isOn())
+                                            hueHelper.toggleLightOn(light);
+                                        ((TextView) findViewById(R.id.textView)).setText(String.valueOf((int) pitchInHz));
+                                        // TODO: Make brightness a config value?
+                                        //hueHelper.setBrightness(light, (int) rms);
+                                        // TODO: Make saturation a config value?
+                                        hueHelper.setSaturation(light, 150);
+                                        hueHelper.setHue(light, (int) (pitchInHz*1000)%65535);
+                                    } catch (Exception e) {
+                                        // when lastPitch isn't initialized, forgot the exception name
+                                        process(pitchInHz, (float) 0.0);
+                                    }
+                                    lastPitch = pitchInHz;
+                                    // do the hueHelper stuff here
+
+                                } catch (InterruptedException e) {
+                                    Log.e("TARSOS", "THREAD STOPPED");
+                                    dispatcher.stop();
+                                    Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                                    Log.i("TARSOS_STATE", state.toString());
                                 }
-                                lastPitch = pitchInHz;
-                                // do the hue stuff here
-                            } catch (InterruptedException e) {
-                                Log.e("TARSOS", "THREAD STOPPED");
-                                dispatcher.stop();
-                                Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
-                                Log.i("TARSOS_STATE", state.toString());
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             };
-            this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, handler);
+            this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 48000, 8000,handler);
             dispatcher.addAudioProcessor(processor);
             this.thread = new Thread(dispatcher, "Audio Dispatcher");
             this.thread.start();
@@ -159,8 +185,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Pause the currently changing hue-light
+     * Pause the currently changing hueHelper-light
      * Stops the thread
+     *
      * @param view
      */
     public void pause(View view) {
@@ -173,7 +200,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /**
-     * Stops the currently changing hue-light (disables)
+     * Stops the currently changing hueHelper-light (disables)
      * Stops the thread
      */
     public void stop(View view) {
@@ -183,7 +210,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         if (this.state != PlayerState.STOPPED) {
             try {
-                hue.toggleLightOn(hue.getNextLight());
+                hueHelper.toggleLightOn(hueHelper.getNextLight());
             } catch (HueHelperException e) {
                 e.printStackTrace();
             }
@@ -193,13 +220,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
 
-        switch(permsRequestCode){
+        switch (permsRequestCode) {
 
             case 200:
 
-                boolean audioAccepted = grantResults[0]== PackageManager.PERMISSION_GRANTED;
+                boolean audioAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
                 break;
 
@@ -209,17 +236,18 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     private void process(float prev, float curr) {
         // set brightness : sets brightness
-        // set hue : sets Hue
+        // set hueHelper : sets Hue
         // set saturation : sets Saturation
         // set XY : sets XY coordinates in color space
         // set CT : sets MIRED COLOR TEMP
 
         PHLight lNext = null;
         try {
-            lNext = hue.getNextLight();
+            lNext = hueHelper.getNextLight();
             // call hueProcessor.process with the pitch and light
         } catch (HueHelperException e) {
             e.printStackTrace();
         }
     }
+
 }

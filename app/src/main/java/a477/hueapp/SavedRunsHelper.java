@@ -29,7 +29,7 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
 
     private final static int VERSION = 1;
     private final static String TAG = "HUE SQL";
-    public static final String DATABASE_NAME = "hue-runs.db";
+    public static final String DATABASE_NAME = "hueHelper-runs.db";
 
     private final static String CREATE_CMD = "CREATE TABLE " + SavedRunEntry.TABLE_NAME + " (" + SavedRunEntry._ID +
             " INTEGER PRIMARY KEY AUTOINCREMENT, " + SavedRunEntry.RUN_NAME + " TEXT NOT NULL UNIQUE, " +
