@@ -153,8 +153,18 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @TargetApi(23)
     public void play(View view) {
         if (state != PlayerState.PLAYING) {
-            requestPermissions(perms, permsRequestCode);
             state = PlayerState.PLAYING;
+            for(PHLight light : hueHelper.getLightsInUse()) {
+                try {
+                    hueHelper.toggleLightOn(light);
+                    hueHelper.setBrightness(light,100);
+                    hueHelper.setSaturation(light, 150);
+                    hueHelper.setHue(light, 65535);
+                } catch (HueHelperException e) {
+                    Log.d("HUE APP", "play: Failed to start up lights");
+                }
+
+            }
             // 22050, 1024, 0
             this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000,8000, 0);
             this.handler = new PitchDetectionHandler() {
@@ -175,14 +185,12 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                                     Log.i("TARSOS_RMS", String.valueOf(rms));
                                     try {
                                         PHLight light = hueHelper.getNextLight();
-                                        if(!light.getLastKnownLightState().isOn())
-                                            hueHelper.toggleLightOn(light);
                                         ((TextView) findViewById(R.id.textView)).setText(String.valueOf((int) pitchInHz));
                                         // TODO: Make brightness a config value?
                                         //hueHelper.setBrightness(light, (int) rms);
                                         // TODO: Make saturation a config value?
                                         hueHelper.setSaturation(light, 150);
-                                        hueHelper.setHue(light, (int) (pitchInHz*1000)%65535);
+                                        hueHelper.setHue(light, (int) (pitchInHz * 1000) % 65535);
                                     } catch (Exception e) {
                                         // when lastPitch isn't initialized, forgot the exception name
                                         process(pitchInHz, (float) 0.0);
@@ -233,29 +241,16 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         if (this.state != PlayerState.STOPPED) {
-            try {
-                hueHelper.toggleLightOn(hueHelper.getNextLight());
-            } catch (HueHelperException e) {
-                e.printStackTrace();
-            }
+            for (PHLight light : hueHelper.getLightsInUse())
+                try {
+                    hueHelper.toggleLightOff(light);
+                } catch (HueHelperException e){
+                    Log.e("HUE APP", "stop: ", e);
+                }
+
         }
 
         this.state = PlayerState.STOPPED;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
-
-        switch (permsRequestCode) {
-
-            case 200:
-
-                boolean audioAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-
-                break;
-
-        }
-
     }
 
     private void process(float prev, float curr) {

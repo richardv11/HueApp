@@ -1,8 +1,14 @@
 package a477.hueapp;
 
+import android.Manifest;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -40,45 +46,79 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Gets an instance of the Hue SDK.
-        phHueSDK = PHHueSDK.create();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET, Manifest.permission.RECORD_AUDIO}, 1);
+        }
+        String[] perms = new String[]{Manifest.permission.INTERNET, Manifest.permission.RECORD_AUDIO};
+        int permsRequestCode = 200;
+        if (!hasPermissions(this, perms)) {
+            ActivityCompat.requestPermissions(this, perms, permsRequestCode);
+        }
+    }
 
-        // Set the Device Name (name of your app). This will be stored in your bridge whitelist entry.
-        phHueSDK.setAppName("CS477-Hue-Music");
-        phHueSDK.setDeviceName(android.os.Build.MODEL);
 
-        // Register the PHSDKListener to receive callbacks from the bridge.
-        phHueSDK.getNotificationManager().registerSDKListener(listener);
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
+
+        switch (permsRequestCode) {
+
+            case 200:
+
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    // Gets an instance of the Hue SDK.
+                    phHueSDK = PHHueSDK.create();
+
+                    // Set the Device Name (name of your app). This will be stored in your bridge whitelist entry.
+                    phHueSDK.setAppName("CS477-Hue-Music");
+                    phHueSDK.setDeviceName(Build.MODEL);
+
+                    // Register the PHSDKListener to receive callbacks from the bridge.
+                    phHueSDK.getNotificationManager().registerSDKListener(listener);
 
 
-        // Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
-        prefs = HueSharedPreferences.getInstance(getApplicationContext());
-        String lastIpAddress = prefs.getLastConnectedIPAddress();
-        String lastUsername = prefs.getUsername();
+                    // Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
+                    prefs = HueSharedPreferences.getInstance(getApplicationContext());
+                    String lastIpAddress = prefs.getLastConnectedIPAddress();
+                    String lastUsername = prefs.getUsername();
 
-        // Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
-        if (lastIpAddress != null && !lastIpAddress.equals("")) {
-            PHAccessPoint lastAccessPoint = new PHAccessPoint();
-            lastAccessPoint.setIpAddress(lastIpAddress);
-            lastAccessPoint.setUsername(lastUsername);
+                    // Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
+                    if (lastIpAddress != null && !lastIpAddress.equals("")) {
+                        PHAccessPoint lastAccessPoint = new PHAccessPoint();
+                        lastAccessPoint.setIpAddress(lastIpAddress);
+                        lastAccessPoint.setUsername(lastUsername);
 
-            if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
-                PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, MainActivity.this);
-                phHueSDK.connect(lastAccessPoint);
-            }
-        } else {  // First time use, so perform a bridge search.
-            // Display welcome screen
-            setContentView(R.layout.activity_welcome);
+                        if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
+                            PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, MainActivity.this);
+                            phHueSDK.connect(lastAccessPoint);
+                            if (phHueSDK.getSelectedBridge() == null) {
+                                PHWizardAlertDialog.getInstance().closeProgressDialog();
+                                Log.d(TAG, "onCreate: Failed to connect to bridge");
+                                setContentView(R.layout.activity_welcome);
+                            }
+                        }
+                    } else {  // First time use, so perform a bridge search.
+                        // Display welcome screen
+                        setContentView(R.layout.activity_welcome);
 
-            // Debugging purposes...
-            findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    startMainActivity();
+                        // Debugging purposes...
+                        findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                startMainActivity();
+                            }
+                        });
+
+                    }
+                } else{
+                    // TODO: Display message that the app can't run without these permissions
+                    finish();
                 }
-            });
+
+                break;
 
         }
+
     }
 
     @Override
@@ -223,10 +263,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (listener != null) {
-            phHueSDK.getNotificationManager().unregisterSDKListener(listener);
+        if(phHueSDK != null) {
+            if (listener != null) {
+                phHueSDK.getNotificationManager().unregisterSDKListener(listener);
+            }
+            phHueSDK.disableAllHeartbeat();
         }
-        phHueSDK.disableAllHeartbeat();
     }
 
     @Override
@@ -262,12 +304,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         startActivity(intent);
     }
 
-    public void infoButton(View view){
+    public void infoButton(View view) {
         String message = "It looks like a new connection is required, simply tap the button to find a new one";
-        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
     }
 
-    public void connectButton(View view){
+    public void connectButton(View view) {
 
         // Switch to the layout for the bridge list
         setContentView(R.layout.bridgelistlinear);
@@ -281,4 +323,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         doBridgeSearch();
     }
 
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
