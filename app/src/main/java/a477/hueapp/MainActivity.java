@@ -53,6 +53,54 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         int permsRequestCode = 200;
         if (!hasPermissions(this, perms)) {
             ActivityCompat.requestPermissions(this, perms, permsRequestCode);
+        } else{
+            start();
+        }
+    }
+
+    private void start() {
+        phHueSDK = PHHueSDK.create();
+
+        // Set the Device Name (name of your app). This will be stored in your bridge whitelist entry.
+        phHueSDK.setAppName("CS477-Hue-Music");
+        phHueSDK.setDeviceName(Build.MODEL);
+
+        // Register the PHSDKListener to receive callbacks from the bridge.
+        phHueSDK.getNotificationManager().registerSDKListener(listener);
+
+
+        // Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
+        prefs = HueSharedPreferences.getInstance(getApplicationContext());
+        String lastIpAddress = prefs.getLastConnectedIPAddress();
+        String lastUsername = prefs.getUsername();
+
+        // Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
+        if (lastIpAddress != null && !lastIpAddress.equals("")) {
+            PHAccessPoint lastAccessPoint = new PHAccessPoint();
+            lastAccessPoint.setIpAddress(lastIpAddress);
+            lastAccessPoint.setUsername(lastUsername);
+
+            if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
+                PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, MainActivity.this);
+                phHueSDK.connect(lastAccessPoint);
+                if (phHueSDK.getSelectedBridge() == null) {
+                    PHWizardAlertDialog.getInstance().closeProgressDialog();
+                    Log.d(TAG, "onCreate: Failed to connect to bridge");
+                    setContentView(R.layout.activity_welcome);
+                }
+            }
+        } else {  // First time use, so perform a bridge search.
+            // Display welcome screen
+            setContentView(R.layout.activity_welcome);
+
+            // Debugging purposes...
+            findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    startMainActivity();
+                }
+            });
+
         }
     }
 
@@ -67,49 +115,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                     // Gets an instance of the Hue SDK.
-                    phHueSDK = PHHueSDK.create();
-
-                    // Set the Device Name (name of your app). This will be stored in your bridge whitelist entry.
-                    phHueSDK.setAppName("CS477-Hue-Music");
-                    phHueSDK.setDeviceName(Build.MODEL);
-
-                    // Register the PHSDKListener to receive callbacks from the bridge.
-                    phHueSDK.getNotificationManager().registerSDKListener(listener);
-
-
-                    // Try to automatically connect to the last known bridge.  For first time use this will be empty so a bridge search is automatically started.
-                    prefs = HueSharedPreferences.getInstance(getApplicationContext());
-                    String lastIpAddress = prefs.getLastConnectedIPAddress();
-                    String lastUsername = prefs.getUsername();
-
-                    // Automatically try to connect to the last connected IP Address.  For multiple bridge support a different implementation is required.
-                    if (lastIpAddress != null && !lastIpAddress.equals("")) {
-                        PHAccessPoint lastAccessPoint = new PHAccessPoint();
-                        lastAccessPoint.setIpAddress(lastIpAddress);
-                        lastAccessPoint.setUsername(lastUsername);
-
-                        if (!phHueSDK.isAccessPointConnected(lastAccessPoint)) {
-                            PHWizardAlertDialog.getInstance().showProgressDialog(R.string.connecting, MainActivity.this);
-                            phHueSDK.connect(lastAccessPoint);
-                            if (phHueSDK.getSelectedBridge() == null) {
-                                PHWizardAlertDialog.getInstance().closeProgressDialog();
-                                Log.d(TAG, "onCreate: Failed to connect to bridge");
-                                setContentView(R.layout.activity_welcome);
-                            }
-                        }
-                    } else {  // First time use, so perform a bridge search.
-                        // Display welcome screen
-                        setContentView(R.layout.activity_welcome);
-
-                        // Debugging purposes...
-                        findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                startMainActivity();
-                            }
-                        });
-
-                    }
+                    start();
                 } else{
                     // TODO: Display message that the app can't run without these permissions
                     finish();
