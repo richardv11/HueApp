@@ -57,15 +57,35 @@ public class HueHelper {
     }
 
     /**
-     * Flips the light on or off
+     * Flips the light on
      *
      * @param light The light to change
      */
-    public void toggleLightOn(PHLight light) {
-        PHLightState lightState = new PHLightState();
-        lightState.setOn(!light.getLastKnownLightState().isOn());
-        Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
-        phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
+    public void toggleLightOn(PHLight light) throws HueHelperException {
+        if(light.getLastKnownLightState().isOn())
+            throw new HueHelperException("Light is already on");
+        else {
+            PHLightState lightState = new PHLightState();
+            lightState.setOn(true);
+            Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
+            phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
+        }
+    }
+
+    /**
+     * Flips the light off
+     *
+     * @param light The light to change
+     */
+    public void toggleLightOff(PHLight light) throws HueHelperException {
+        if(!light.getLastKnownLightState().isOn())
+            throw new HueHelperException("Light is already off");
+        else {
+            PHLightState lightState = new PHLightState();
+            lightState.setOn(false);
+            Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
+            phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
+        }
     }
 
     /**
