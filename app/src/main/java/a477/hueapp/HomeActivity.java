@@ -48,17 +48,12 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     Map<String, PHLight> customLightsMap = new HashMap<>();
     ListView listView;
 
-
-    // Tarsos stuff
-    String[] perms = {"android.permission.RECORD_AUDIO"};
-    int permsRequestCode = 200;
     AudioDispatcher dispatcher;
     PitchDetectionHandler handler;
     AudioProcessor processor;
     static PlayerState state;
     Thread thread;
     float lastPitch;
-    HueProcessor hueProcessor;
     private double rms;
     private float pitchInHz;
 
@@ -66,10 +61,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.INTERNET}, 1);
-        }
 
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
@@ -109,7 +100,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         this.hueHelper = new HueHelper();
-        this.hueProcessor = new HueProcessor();
 
         // Grab the lights into a map, and populate list using popLightList().
         lightsMap = hueHelper.getLights();
@@ -154,10 +144,10 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     public void play(View view) {
         if (state != PlayerState.PLAYING) {
             state = PlayerState.PLAYING;
-            for(PHLight light : hueHelper.getLightsInUse()) {
+            for (PHLight light : hueHelper.getLightsInUse()) {
                 try {
                     hueHelper.toggleLightOn(light);
-                    hueHelper.setBrightness(light,100);
+                    hueHelper.setBrightness(light, 100);
                     hueHelper.setSaturation(light, 150);
                     hueHelper.setHue(light, 65535);
                 } catch (HueHelperException e) {
@@ -166,50 +156,41 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
             }
             // 22050, 1024, 0
-            this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000,8000, 0);
+            this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000, 8000, 0);
             this.handler = new PitchDetectionHandler() {
                 @Override
                 public void handlePitch(PitchDetectionResult result, AudioEvent e) {
                     pitchInHz = result.getPitch();
                     rms = (e.getRMS() * 1000) % 256;
                     if (pitchInHz != -1) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                // this should probably only run in every X intervals...
-                                try {
-                                    if (state != PlayerState.PLAYING) {
-                                        throw new InterruptedException("Thread is stopped/paused");
-                                    }
-                                    Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
-                                    Log.i("TARSOS_RMS", String.valueOf(rms));
-                                    try {
-                                        PHLight light = hueHelper.getNextLight();
-                                        ((TextView) findViewById(R.id.textView)).setText(String.valueOf((int) pitchInHz));
-                                        // TODO: Make brightness a config value?
-                                        //hueHelper.setBrightness(light, (int) rms);
-                                        // TODO: Make saturation a config value?
-                                        hueHelper.setSaturation(light, 150);
-                                        hueHelper.setHue(light, (int) (pitchInHz * 1000) % 65535);
-                                    } catch (Exception e) {
-                                        // when lastPitch isn't initialized, forgot the exception name
-                                        process(pitchInHz, (float) 0.0);
-                                    }
-                                    lastPitch = pitchInHz;
-                                    // do the hueHelper stuff here
-
-                                } catch (InterruptedException e) {
-                                    Log.e("TARSOS", "THREAD STOPPED");
-                                    dispatcher.stop();
-                                    Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
-                                    Log.i("TARSOS_STATE", state.toString());
-                                }
+                        try {
+                            if (state != PlayerState.PLAYING) {
+                                throw new InterruptedException("Thread is stopped/paused");
                             }
-                        });
+                            Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                            Log.i("TARSOS_RMS", String.valueOf(rms));
+                            try {
+                                PHLight light = hueHelper.getNextLight();
+                                ((TextView) findViewById(R.id.textView)).setText(String.valueOf((int) pitchInHz));
+                                // TODO: Make brightness a config value?
+                                //hueHelper.setBrightness(light, (int) rms);
+                                // TODO: Make saturation a config value?
+                                hueHelper.setSaturation(light, 150);
+                                hueHelper.setHue(light, (int) (pitchInHz * 1000) % 65535);
+                            } catch (HueHelperException e2) {
+                                Log.e("HUE APP", "handlePitch: ", e2);
+                            }
+                            lastPitch = pitchInHz;
+                        } catch (InterruptedException e3) {
+                            Log.e("TARSOS", "THREAD STOPPED");
+                            dispatcher.stop();
+                            Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                            Log.i("TARSOS_STATE", state.toString());
+                        }
                     }
                 }
             };
-            this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 48000, 8000,handler);
+            this.processor = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 48000, 8000, handler);
             dispatcher.addAudioProcessor(processor);
             this.thread = new Thread(dispatcher, "Audio Dispatcher");
             this.thread.start();
@@ -244,7 +225,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             for (PHLight light : hueHelper.getLightsInUse())
                 try {
                     hueHelper.toggleLightOff(light);
-                } catch (HueHelperException e){
+                } catch (HueHelperException e) {
                     Log.e("HUE APP", "stop: ", e);
                 }
 
@@ -253,34 +234,18 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         this.state = PlayerState.STOPPED;
     }
 
-    private void process(float prev, float curr) {
-        // set brightness : sets brightness
-        // set hueHelper : sets Hue
-        // set saturation : sets Saturation
-        // set XY : sets XY coordinates in color space
-        // set CT : sets MIRED COLOR TEMP
-
-        PHLight lNext = null;
-        try {
-            lNext = hueHelper.getNextLight();
-            // call hueProcessor.process with the pitch and light
-        } catch (HueHelperException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Override
-    public void onBackPressed(){
+    public void onBackPressed() {
 
     }
 
     // Populate the list view with the lights, creates customLightMap
-    private void popLightList(){
+    private void popLightList() {
         Iterator<String> lightIDs = lightsMap.keySet().iterator();
         String lightID;
         PHLight light;
         final ArrayList<String> lightNames = new ArrayList<String>();
-        while(lightIDs.hasNext()){
+        while (lightIDs.hasNext()) {
             lightID = lightIDs.next();
             light = lightsMap.get(lightID);
             customLightsMap.put(light.getName(), light);
@@ -294,7 +259,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 PHLight currLight = customLightsMap.get(lightNames.get(position));
-                Toast.makeText(getApplicationContext(), currLight.getName(), Toast.LENGTH_SHORT ).show();
+                Toast.makeText(getApplicationContext(), currLight.getName(), Toast.LENGTH_SHORT).show();
                 return false;
             }
         });
