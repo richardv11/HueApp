@@ -26,7 +26,7 @@
     <ListView
         android:id="@+id/bridge_list"
         android:layout_width="340dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:paddingLeft="30dp"
         android:layout_weight="1"
         android:cacheColorHint="#00000000"

@@ -294,8 +294,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 PHLight currLight = customLightsMap.get(lightNames.get(position));
-
-                Toast.makeText(getApplicationContext(), currLight.getLuminaireUniqueId(), Toast.LENGTH_SHORT ).show();
+                Toast.makeText(getApplicationContext(), currLight.getName(), Toast.LENGTH_SHORT ).show();
                 return false;
             }
         });
