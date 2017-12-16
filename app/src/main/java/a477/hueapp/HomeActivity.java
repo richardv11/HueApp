@@ -1,10 +1,7 @@
 package a477.hueapp;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -12,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +19,6 @@ import com.philips.lighting.model.PHLight;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import a477.hueapp.hue.HueHelper;
@@ -36,31 +33,33 @@ import be.tarsos.dsp.pitch.PitchProcessor;
 
 public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
 
-    ResideMenu resideMenu;
+    private Toolbar toolbar;
+    private ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSavedSongs, itemSettings;
-    Toolbar toolbar;
 
-    HueHelper hueHelper;
+    private HueHelper hueHelper;
 
-    // Map of lights, key is the ID
-    Map<String, PHLight> lightsMap;
-    // Custom map of lights, key is the light name
-    Map<String, PHLight> customLightsMap = new HashMap<>();
-    ListView listView;
+    private Map<String, PHLight> lightsMap;                             // Map of lights, key is the ID
+    private Map<String, PHLight> customLightsMap = new HashMap<>();     // Custom map of lights, key is the light name
 
-    AudioDispatcher dispatcher;
-    PitchDetectionHandler handler;
-    AudioProcessor processor;
-    static PlayerState state;
-    Thread thread;
-    float lastPitch;
+    private ListView listView;
+    private AudioDispatcher dispatcher;
+    private PitchDetectionHandler handler;
+    private AudioProcessor processor;
+    private static PlayerState state;
+    private Thread thread;
+    private float lastPitch;
     private double rms;
     private float pitchInHz;
+
+    private boolean DEBUG_MODE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
 
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
@@ -93,19 +92,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        if (savedInstanceState == null) {
-            state = PlayerState.NO_FILE_LOADED;
-        } else {
-            state = PlayerState.FILE_LOADED;
+        state = PlayerState.STOPPED;
+
+        if (!DEBUG_MODE) {
+            this.hueHelper = new HueHelper();
+
+            // Grab the lights into a map, and populate list using popLightList().
+            lightsMap = hueHelper.getLights();
+            // listView adapter is set in popLightList()
+            listView = (ListView) findViewById(R.id.listview);
+            popLightList();
         }
-
-        this.hueHelper = new HueHelper();
-
-        // Grab the lights into a map, and populate list using popLightList().
-        lightsMap = hueHelper.getLights();
-        // listView adapter is set in popLightList()
-        listView = (ListView) findViewById(R.id.listview);
-        popLightList();
 
     }
 
@@ -116,11 +113,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
         }
         if (view == itemSavedSongs) {
             // Saved Songs
             intent = new Intent(this, SavedSongs.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
         }
         resideMenu.closeMenu();
@@ -143,7 +142,14 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @TargetApi(23)
     public void play(View view) {
         if (state != PlayerState.PLAYING) {
+            findViewById(R.id.play).setVisibility(View.GONE);
+            findViewById(R.id.pause).setVisibility(View.VISIBLE);
             state = PlayerState.PLAYING;
+
+            if (DEBUG_MODE) {
+                Log.i("BUTTON_STATE", state.toString());
+                return ;
+            }
             for (PHLight light : hueHelper.getLightsInUse()) {
                 try {
                     hueHelper.toggleLightOn(light);
@@ -153,7 +159,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (HueHelperException e) {
                     Log.d("HUE APP", "play: Failed to start up lights");
                 }
-
             }
             // 22050, 1024, 0
             this.dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000, 8000, 0);
@@ -205,11 +210,16 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void pause(View view) {
         if (this.state == PlayerState.PLAYING) {
-            thread.interrupt();
+            findViewById(R.id.play).setVisibility(View.VISIBLE);
+            findViewById(R.id.pause).setVisibility(View.GONE);
+            this.state = PlayerState.PAUSED;
+            if (DEBUG_MODE) {
+                return ;
+            }
+            thread.interrupt();                       // Has to be after DEBUG_MODE block
         }
-
         // pause hue_light should be done in the run() by not doing anything
-        this.state = PlayerState.PAUSED;
+        // this.state = PlayerState.PAUSED;
     }
 
     /**
@@ -218,10 +228,19 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      */
     public void stop(View view) {
         if (this.state == PlayerState.PLAYING) {
-            thread.interrupt();
+            findViewById(R.id.play).setVisibility(View.VISIBLE);
+            findViewById(R.id.pause).setVisibility(View.GONE);
+            this.state = PlayerState.STOPPED;
+            if (DEBUG_MODE) {
+                return ;
+            }
+            thread.interrupt();                       // Has to be after DEBUG_MODE block
         }
 
         if (this.state != PlayerState.STOPPED) {
+            if (DEBUG_MODE) {
+                return ;
+            }
             for (PHLight light : hueHelper.getLightsInUse())
                 try {
                     hueHelper.toggleLightOff(light);
@@ -231,7 +250,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        this.state = PlayerState.STOPPED;
+        // this.state = PlayerState.STOPPED;
     }
 
     @Override
