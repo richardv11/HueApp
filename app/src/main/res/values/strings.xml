@@ -20,4 +20,5 @@
 
     <!-- for textview -->
     <string name="lbl_settings">Settings</string>
+
 </resources>

@@ -241,6 +241,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     // Populate the list view with the lights, creates customLightMap
     private void popLightList() {
+        // Get the values to be added to list
         Iterator<String> lightIDs = lightsMap.keySet().iterator();
         String lightID;
         PHLight light;
@@ -252,16 +253,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             lightNames.add(light.getName());
         }
 
-        // Set the array adapater for the lsit
-        listView.setAdapter(new ArrayAdapter<>(getApplicationContext(), R.layout.line, lightNames));
-        // Set the listener for the list
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                PHLight currLight = customLightsMap.get(lightNames.get(position));
-                Toast.makeText(getApplicationContext(), currLight.getName(), Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        });
+        // Custom list view, text + toggle
+        MyListView adapter = new MyListView(this, lightNames);
+        listView.setAdapter(adapter);
     }
 }
