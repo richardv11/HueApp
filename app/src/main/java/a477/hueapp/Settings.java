@@ -1,21 +1,12 @@
 package a477.hueapp;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.PaintDrawable;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -32,14 +23,14 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
     private ResideMenuItem itemHome, itemSavedSongs;
     private boolean DEBUG_MODE;
     private HueHelper hueHelper;
+    SharedPreferences sharedpreferences;
+    private final String PREF_NAME = "hue_pref";
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+    int red;
+    int green;
+    int blue;
 
-        DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
-
+    private void init_base_ui() {
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
         resideMenu.setBackground(R.drawable.ligh_background);
@@ -67,6 +58,15 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                 resideMenu.openMenu(ResideMenu.DIRECTION_LEFT);
             }
         });
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_settings);
+
+        DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
+        init_base_ui();
 
         final HSLColorPicker colorPicker = (HSLColorPicker) findViewById(R.id.colorPicker);
         final ImageView imageView = (ImageView) findViewById(R.id.imageView);
@@ -74,26 +74,29 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
             hueHelper = new HueHelper();
         }
 
+        sharedpreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        red = sharedpreferences.getInt("red", 30);
+        green = sharedpreferences.getInt("green", 225);
+        blue = sharedpreferences.getInt("blue", 225);
+        int color = Color.argb(255, red, green, blue);
+        imageView.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+
+
+        /**
+         * FYI, but I think this may need to check the STATE and current thread to change colors.
+         */
         colorPicker.setColorSelectionListener(new SimpleColorSelectionListener() {
             @Override
             public void onColorSelected(int color) {
                 // conversion from RGB to CIE XY
-                float red = Color.red(color) / 255;
-                float green = Color.green(color) / 255;
-                float blue = Color.blue(color) / 255;
-                red = (red > 0.04045f) ? (float) Math.pow((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
-                green = (green > 0.04045f) ? (float) Math.pow((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
-                blue = (blue > 0.04045f) ? (float) Math.pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f) : (blue / 12.92f);
-                float X = red * 0.649926f + green * 0.103455f + blue * 0.197109f;
-                float Y = red * 0.234327f + green * 0.743075f + blue * 0.022598f;
-                float Z = red * 0.0000000f + green * 0.053077f + blue * 1.035763f;
-
-                float x = X / (X + Y + Z);
-                float y = Y / (X + Y + Z);
+                red = Color.red(color);
+                green = Color.green(color);
+                blue = Color.blue(color);
+                float[] f = convertToXY(red, green, blue);
 
                 if (!DEBUG_MODE) {
                     try {
-                        hueHelper.setXY(hueHelper.getNextLight(), x, y);
+                        hueHelper.setXY(hueHelper.getNextLight(), f[0], f[1]);
                     } catch (HueHelperException e) {
                         e.printStackTrace();
                     }
@@ -124,11 +127,37 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
     }
 
 
-    // save current color
+    // save current color (we might not need to if we use sharedpreferences)
     @Override
     public void onPause() {
         super.onPause();
 
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putInt("red", red);
+        editor.putInt("green", green);
+        editor.putInt("blue", blue);
+        editor.commit();
+    }
 
+    private float[] convertToXY(int red, int green, int blue) {
+        red /= 255;
+        green /= 255;
+        blue /= 255;
+
+        float r = (red > 0.04045f) ? (float) Math.pow((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
+        float g = (green > 0.04045f) ? (float) Math.pow((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
+        float b = (blue > 0.04045f) ? (float) Math.pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f) : (blue / 12.92f);
+        float X = r * 0.649926f + g * 0.103455f + b * 0.197109f;
+        float Y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
+        float Z = r * 0.0000000f + g * 0.053077f + b * 1.035763f;
+
+        float x = X / (X + Y + Z);
+        float y = Y / (X + Y + Z);
+
+        float[] f = new float[2];
+        f[0] = x;
+        f[1] = y;
+
+        return f;
     }
 }

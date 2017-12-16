@@ -53,6 +53,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     private float pitchInHz;
 
     private boolean DEBUG_MODE;
+    private final String PREF_NAME = "hue_pref";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

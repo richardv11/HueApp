@@ -12,6 +12,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     private ResideMenuItem itemHome, itemSettings;
     Toolbar toolbar;
     private boolean DEBUG_MODE;
+    private final String PREF_NAME = "hue_pref";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
