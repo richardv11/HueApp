@@ -1,19 +1,16 @@
 package a477.hueapp;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.philips.lighting.model.PHLight;
@@ -21,11 +18,11 @@ import com.philips.lighting.model.PHLight;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
+import a477.hueapp.savedRuns.SavedRunsHelper;
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
 import be.tarsos.dsp.AudioProcessor;
@@ -41,6 +38,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     Toolbar toolbar;
 
     HueHelper hueHelper;
+    SavedRunsHelper srHelper;
+    SQLiteDatabase db;
 
     // Map of lights, key is the ID
     Map<String, PHLight> lightsMap;
@@ -99,7 +98,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             state = PlayerState.FILE_LOADED;
         }
 
-        this.hueHelper = new HueHelper();
+        this.hueHelper = HueHelper.getInstance();
+        srHelper = SavedRunsHelper.getInstance(getApplicationContext());
+        db = srHelper.getWritableDatabase();
 
         // Grab the lights into a map, and populate list using popLightList().
         lightsMap = hueHelper.getLights();
@@ -129,7 +130,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     public void test(View view) {
         if (state != PlayerState.PLAYING)
             play(view);
-        HueHelper hh = new HueHelper();
+        HueHelper hh = HueHelper.getInstance();
 //        hh.toggleLightOn(hh.getLights().get("3"));
         try {
             hh.setHue(hh.getLights().get("3"), (int) pitchInHz);
@@ -170,8 +171,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                             Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
                             Log.i("TARSOS_RMS", String.valueOf(rms));
                             try {
+                                srHelper.addNote("" + pitchInHz + " " + System.currentTimeMillis());
                                 PHLight light = hueHelper.getNextLight();
-                                ((TextView) findViewById(R.id.textView)).setText(String.valueOf((int) pitchInHz));
                                 // TODO: Make brightness a config value?
                                 //hueHelper.setBrightness(light, (int) rms);
                                 // TODO: Make saturation a config value?
@@ -200,10 +201,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * Pause the currently changing hueHelper-light
      * Stops the thread
-     *
-     * @param view
      */
-    public void pause(View view) {
+    public void pause() {
         if (this.state == PlayerState.PLAYING) {
             thread.interrupt();
         }
@@ -225,6 +224,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             for (PHLight light : hueHelper.getLightsInUse())
                 try {
                     hueHelper.toggleLightOff(light);
+                    // TODO: Prompt user for name
+
+                    srHelper.saveSavedRun(db, "Name");
                 } catch (HueHelperException e) {
                     Log.e("HUE APP", "stop: ", e);
                 }
@@ -256,5 +258,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         // Custom list view, text + toggle
         MyListView adapter = new MyListView(this, lightNames);
         listView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onPause() {
+        if (state == PlayerState.PLAYING) {
+            pause();
+        }
+        super.onPause();
     }
 }

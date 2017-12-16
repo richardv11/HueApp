@@ -21,15 +21,23 @@ public class HueHelper {
     private final PHHueSDK phHueSDK;
     private ArrayList<PHLight> lightsInUse;
     private int lastLight;
+    private static HueHelper instance;
 
-    public HueHelper() {
+    private HueHelper() {
         phHueSDK = PHHueSDK.getInstance();
+        phHueSDK.getHeartbeatManager().enableLightsHeartbeat(phHueSDK.getSelectedBridge(),1001);
         lightsInUse = new ArrayList<>();
         lastLight = 0;
 
         // TESTING PURPOSES
-        lightsInUse.add(getLights().get("3"));
+//        lightsInUse.add(getLights().get("3"));
         lightsInUse.add(getLights().get("12"));
+    }
+
+    public static HueHelper getInstance(){
+        if(instance == null)
+            instance = new HueHelper();
+        return instance;
     }
 
     /**
@@ -62,6 +70,13 @@ public class HueHelper {
      * @param light The light to change
      */
     public void toggleLightOn(PHLight light) throws HueHelperException {
+        // Get the real status of the light
+        List<PHLight> lights = phHueSDK.getSelectedBridge().getResourceCache().getAllLights();
+        for(PHLight l : lights){
+            if(l.getName().equals(light.getName())){
+                light = l;
+            }
+        }
         if(light.getLastKnownLightState().isOn())
             throw new HueHelperException("Light is already on");
         else {
@@ -78,6 +93,13 @@ public class HueHelper {
      * @param light The light to change
      */
     public void toggleLightOff(PHLight light) throws HueHelperException {
+        // Get the real status of the light
+        List<PHLight> lights = phHueSDK.getSelectedBridge().getResourceCache().getAllLights();
+        for(PHLight l : lights){
+            if(l.getName().equals(light.getName())){
+                light = l;
+            }
+        }
         if(!light.getLastKnownLightState().isOn())
             throw new HueHelperException("Light is already off");
         else {

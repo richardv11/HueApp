@@ -20,5 +20,5 @@
 
     <!-- for textview -->
     <string name="lbl_settings">Settings</string>
-
+    <string name="song_library">Song Library</string>
 </resources>

@@ -1,21 +1,43 @@
 package a477.hueapp;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
+import com.philips.lighting.model.PHLight;
+
+import java.sql.Timestamp;
+
+import a477.hueapp.hue.HueHelper;
+import a477.hueapp.hue.HueHelperException;
+import a477.hueapp.savedRuns.SavedRunContract;
+import a477.hueapp.savedRuns.SavedRunRunner;
+import a477.hueapp.savedRuns.SavedRunsHelper;
 
 public class SavedSongs extends AppCompatActivity implements View.OnClickListener {
 
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSettings;
     Toolbar toolbar;
+    private ArrayAdapter<String> adapter;
+    private ListView savedRunList;
+    private SavedRunsHelper srHelper;
+    private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_songs);
+
+        srHelper = SavedRunsHelper.getInstance(getApplicationContext());
+        db = srHelper.getWritableDatabase();
 
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
@@ -44,6 +66,51 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                 resideMenu.openMenu(ResideMenu.DIRECTION_LEFT);
             }
         });
+
+        savedRunList = (ListView) findViewById(R.id.savedRunList);
+        adapter = new ArrayAdapter<>(this, R.layout.line);
+
+        adapter.addAll(srHelper.getAllSavedRunNames(db));
+
+        savedRunList.setAdapter(adapter);
+
+        savedRunList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                run(adapter.getItem(position));
+            }
+        });
+
+        savedRunList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                boolean toReturn = srHelper.deleteSavedRun(db, adapter.getItem(position));
+                if (toReturn)
+                    adapter.remove(adapter.getItem(position));
+                return toReturn;
+            }
+        });
+
+    }
+
+    public void run(String name) {
+        String run = srHelper.getSavedRun(db, name).get(SavedRunContract.SavedRunEntry.RUN_PATTERN);
+
+        // Turn on lights
+        HueHelper hueHelper = HueHelper.getInstance();
+        for (PHLight light : hueHelper.getLightsInUse()) {
+            try {
+                hueHelper.toggleLightOn(light);
+            } catch (HueHelperException e) {
+                Log.e("SavedSongs", "run: ", e);
+            }
+        }
+
+        SavedRunRunner runner = new SavedRunRunner(run);
+        Thread t = new Thread(runner);
+        t.start();
     }
 
     @Override
@@ -55,7 +122,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             startActivity(intent);
 
         }
-        if(view == itemSettings){
+        if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
             startActivity(intent);
