@@ -12,12 +12,14 @@ import a477.hueapp.hue.HueHelperException;
 public class SavedRunRunner implements Runnable {
     private String run;
     private HueHelper hueHelper;
+    private int startingIndex;
 
     @Override
     public void run() {
         hueHelper = HueHelper.getInstance();
         String[] notes = run.split(",");
-        for (int i = 0; i < notes.length; i++) {
+        for (int i = startingIndex; i < notes.length; i++) {
+            SavedRunStateManager.getInstance().setLastNoteIndex(i);
             String[] tmp = notes[i].split(" ");
             String freq = tmp[0];
             Timestamp start = new Timestamp(Long.valueOf(tmp[1]));
@@ -45,7 +47,8 @@ public class SavedRunRunner implements Runnable {
                     // TODO: outside of the ui thread for sure. And we can have a start, stop,
                     // TODO: and pause button similar to the home page. With these we can
                     // TODO: interrupt the thread this is running on.
-                    e.printStackTrace();
+                    break;
+//                    e.printStackTrace();
                 }
             }
         }
@@ -61,7 +64,8 @@ public class SavedRunRunner implements Runnable {
 
     }
 
-    public SavedRunRunner(String run) {
+    public SavedRunRunner(String run,int idx) {
         this.run = run;
+        this.startingIndex = idx;
     }
 }

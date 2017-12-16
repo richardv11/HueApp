@@ -19,6 +19,8 @@ import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
 import a477.hueapp.savedRuns.SavedRunContract;
 import a477.hueapp.savedRuns.SavedRunRunner;
+import a477.hueapp.savedRuns.SavedRunStateManager;
+import a477.hueapp.savedRuns.SavedRunStates;
 import a477.hueapp.savedRuns.SavedRunsHelper;
 
 public class SavedSongs extends AppCompatActivity implements View.OnClickListener {
@@ -29,7 +31,10 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     private ArrayAdapter<String> adapter;
     private ListView savedRunList;
     private SavedRunsHelper srHelper;
+    private SavedRunStateManager stateManager;
     private SQLiteDatabase db;
+    private Thread runThread;
+    private String selected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +43,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
 
         srHelper = SavedRunsHelper.getInstance(getApplicationContext());
         db = srHelper.getWritableDatabase();
+        stateManager = SavedRunStateManager.getInstance();
 
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
@@ -78,7 +84,8 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                run(adapter.getItem(position));
+                selected = adapter.getItem(position);
+//                run(adapter.getItem(position));
             }
         });
 
@@ -95,7 +102,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
 
     }
 
-    public void run(String name) {
+    public void run(String name, int startingIndex) {
         String run = srHelper.getSavedRun(db, name).get(SavedRunContract.SavedRunEntry.RUN_PATTERN);
 
         // Turn on lights
@@ -108,9 +115,9 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             }
         }
 
-        SavedRunRunner runner = new SavedRunRunner(run);
-        Thread t = new Thread(runner);
-        t.start();
+        SavedRunRunner runner = new SavedRunRunner(run, startingIndex);
+        runThread = new Thread(runner);
+        runThread.start();
     }
 
     @Override
@@ -128,5 +135,26 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             startActivity(intent);
         }
         resideMenu.closeMenu();
+    }
+
+    public void stop(View view) {
+        if (runThread != null)
+            runThread.interrupt();
+        stateManager.playerStopped();
+    }
+
+    public void play(View view) {
+        // If we were paused restart the run. Else start a new one.
+        if (stateManager.getState().equals(SavedRunStates.PAUSED)) {
+            run(selected, stateManager.getLastNoteIndex());
+        } else if (selected != null && !selected.equals(""))
+            run(selected, 0);
+
+        stateManager.playerStarted();
+    }
+
+    public void pause(View view) {
+        runThread.interrupt();
+        stateManager.playerPaused();
     }
 }
