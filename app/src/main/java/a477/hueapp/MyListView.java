@@ -1,13 +1,19 @@
 package a477.hueapp;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.philips.lighting.model.PHLight;
+
 import java.util.ArrayList;
+
+import a477.hueapp.hue.HueHelper;
 
 /**
  * Created by Richard on 12/16/2017.
@@ -28,9 +34,9 @@ public class MyListView extends ArrayAdapter<String> {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.my_list_row, parent, false);
+        final View rowView = inflater.inflate(R.layout.my_list_row, parent, false);
 
-        TextView textView = (TextView) rowView.findViewById(R.id.lightText);
+        final TextView textView = (TextView) rowView.findViewById(R.id.lightText);
         final ImageButton imageButton = (ImageButton) rowView.findViewById(R.id.toggle_image);
 
         imageButton.setOnClickListener(new View.OnClickListener() {
@@ -41,8 +47,20 @@ public class MyListView extends ArrayAdapter<String> {
 
                 if (imageButton.isSelected()) {
                     // Light is desired by user for this run
+                    for(PHLight light : HueHelper.getInstance().getLights().values()){
+                        if(light.getName().equals(textView.getText().toString())){
+                            HueHelper.getInstance().addLightInUse(light);
+                            break;
+                        }
+                    }
                 } else {
                     //Light is not desired by user for this run
+                    for(PHLight light : HueHelper.getInstance().getLights().values()){
+                        if(light.getName().equals(textView.getText().toString())){
+                            HueHelper.getInstance().deleteLightInUse(light);
+                            break;
+                        }
+                    }
                 }
             }
         });

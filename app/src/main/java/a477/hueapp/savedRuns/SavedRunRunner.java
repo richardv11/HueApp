@@ -29,10 +29,11 @@ public class SavedRunRunner implements Runnable {
                 try {
 
                     PHLight light = hueHelper.getNextLight();
-                    hueHelper.setBrightness(light, 100);
-                    hueHelper.setSaturation(light, 150);
-                    hueHelper.setHue(light, (int) (Float.valueOf(freq) * 1000) % 65535);
-
+                    if (light != null) {
+                        hueHelper.setBrightness(light, 100);
+                        hueHelper.setSaturation(light, 150);
+                        hueHelper.setHue(light, (int) (Float.valueOf(freq) * 1000) % 65535);
+                    }
                 } catch (HueHelperException e) {
                     Log.e("SavedRunRunner", "run: ", e);
                 }

@@ -173,18 +173,23 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
                             try {
                                 srHelper.addNote("" + pitchInHz + " " + System.currentTimeMillis());
                                 PHLight light = hueHelper.getNextLight();
-                                // TODO: Make brightness a config value?
-                                //hueHelper.setBrightness(light, (int) rms);
-                                // TODO: Make saturation a config value?
-                                hueHelper.setSaturation(light, 150);
-                                hueHelper.setHue(light, (int) (pitchInHz * 1000) % 65535);
+                                if (light != null) {
+                                    // TODO: Make brightness a config value?
+                                    //hueHelper.setBrightness(light, (int) rms);
+                                    // TODO: Make saturation a config value?
+                                    hueHelper.setSaturation(light, 150);
+                                    hueHelper.setHue(light, (int) (pitchInHz * 1000) % 65535);
+                                }
                             } catch (HueHelperException e2) {
                                 Log.e("HUE APP", "handlePitch: ", e2);
                             }
                             lastPitch = pitchInHz;
                         } catch (InterruptedException e3) {
                             Log.e("TARSOS", "THREAD STOPPED");
-                            dispatcher.stop();
+                            try {
+                                dispatcher.stop();
+                            } catch (Exception e4) {
+                            }
                             Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
                             Log.i("TARSOS_STATE", state.toString());
                         }
@@ -247,7 +252,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         Iterator<String> lightIDs = lightsMap.keySet().iterator();
         String lightID;
         PHLight light;
-        final ArrayList<String> lightNames = new ArrayList<String>();
+        final ArrayList<String> lightNames = new ArrayList<>();
         while (lightIDs.hasNext()) {
             lightID = lightIDs.next();
             light = lightsMap.get(lightID);

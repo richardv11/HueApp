@@ -11,9 +11,11 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import a477.hueapp.hue.HueHelperException;
+
 /**
  * Created by mrodger4 on 11/20/17.
- *
+ * <p>
  * This class acts as a helper between the Main Activity and the
  * database that stores the saved runs.
  * <p>
@@ -38,37 +40,41 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
     private static SavedRunsHelper instance;
     private String run;
 
-    public static SavedRunsHelper getInstance(Context context){
-        if(instance == null){
+    public static SavedRunsHelper getInstance(Context context) {
+        if (instance == null) {
             instance = new SavedRunsHelper(context);
         }
         return instance;
     }
 
-    public void addNote(String note){
-        if(run == null){
+    public void addNote(String note) {
+        if (run == null) {
             run = "";
-        } else{
-            run += note+",";
+        } else {
+            run += note + ",";
         }
     }
 
-    public void clearRun(){
+    public void clearRun() {
         run = "";
     }
 
-    public boolean saveSavedRun(SQLiteDatabase db, String name) {
-        try {
-            ContentValues cv = new ContentValues();
-            cv.put(SavedRunContract.SavedRunEntry.RUN_NAME,name);
-            cv.put(SavedRunContract.SavedRunEntry.RUN_PATTERN,run.substring(0,run.length()-1));
-            db.insert(SavedRunContract.SavedRunEntry.TABLE_NAME, null, cv);
-            clearRun();
-            return true;
-        } catch (SQLException e) {
-            Log.e(TAG, " - Exception: " + e);
-            // Don't want to clear here. Maybe want to give them an option to try saving again?
-            return false;
+    public boolean saveSavedRun(SQLiteDatabase db, String name) throws HueHelperException {
+        if (run != null && !run.equals("")) {
+            try {
+                ContentValues cv = new ContentValues();
+                cv.put(SavedRunContract.SavedRunEntry.RUN_NAME, name);
+                cv.put(SavedRunContract.SavedRunEntry.RUN_PATTERN, run.substring(0, run.length() - 1));
+                db.insert(SavedRunContract.SavedRunEntry.TABLE_NAME, null, cv);
+                clearRun();
+                return true;
+            } catch (SQLException e) {
+                Log.e(TAG, " - Exception: " + e);
+                // Don't want to clear here. Maybe want to give them an option to try saving again?
+                return false;
+            }
+        } else{
+            throw new HueHelperException("Empty Run");
         }
     }
 
