@@ -29,6 +29,10 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSettings;
     Toolbar toolbar;
+
+    private boolean DEBUG_MODE;
+    private final String PREF_NAME = "hue_pref";
+
     private ArrayAdapter<String> adapter;
     private SavedRunsHelper srHelper;
     private HueHelper hueHelper;
@@ -40,6 +44,8 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_songs);
+
+        DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
 
         hueHelper = HueHelper.getInstance();
         srHelper = SavedRunsHelper.getInstance(getApplicationContext());
@@ -129,12 +135,14 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         if (view == itemHome) {
             // Home
             intent = new Intent(this, HomeActivity.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
 
         }
         if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
         }
         resideMenu.closeMenu();

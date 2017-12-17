@@ -2,9 +2,9 @@ package a477.hueapp;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ListView;
@@ -23,6 +23,8 @@ import a477.hueapp.savedRuns.SavedRunStates;
 import a477.hueapp.savedRuns.SavedRunsHelper;
 
 public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private boolean DEBUG_MODE;
 
     ResideMenu resideMenu;
     private ResideMenuItem itemSavedSongs;
@@ -46,6 +48,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
 
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
@@ -78,18 +82,20 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        mpHelper = MainPlayerHelper.getInstance(getApplicationContext());
-        hueHelper = HueHelper.getInstance();
-        srHelper = SavedRunsHelper.getInstance(getApplicationContext());
-        db = srHelper.getWritableDatabase();
-        savedRunStateManager = SavedRunStateManager.getInstance();
-        playerStateManager = PlayerStateManager.getInstance();
+        if (!DEBUG_MODE) {
+            mpHelper = MainPlayerHelper.getInstance(getApplicationContext());
+            hueHelper = HueHelper.getInstance();
+            srHelper = SavedRunsHelper.getInstance(getApplicationContext());
+            db = srHelper.getWritableDatabase();
+            savedRunStateManager = SavedRunStateManager.getInstance();
+            playerStateManager = PlayerStateManager.getInstance();
 
-        // Grab the lights into a map, and populate list using popLightList().
-        lightsMap = hueHelper.getLights();
-        // listView adapter is set in popLightList()
-        listView = (ListView) findViewById(R.id.listview);
-        popLightList();
+            // Grab the lights into a map, and populate list using popLightList().
+            lightsMap = hueHelper.getLights();
+            // listView adapter is set in popLightList()
+            listView = (ListView) findViewById(R.id.listview);
+            popLightList();
+        }
 
     }
 
@@ -100,11 +106,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
         }
         if (view == itemSavedSongs) {
             // Saved Songs
             intent = new Intent(this, SavedSongs.class);
+            intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
         }
         resideMenu.closeMenu();
@@ -112,7 +120,14 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @TargetApi(23)
     public void play(View view) {
-        mpHelper.start();
+        if (playerStateManager.getState() != PlayerState.PLAYING) {
+            findViewById(R.id.play).setVisibility(View.GONE);
+            findViewById(R.id.pause).setVisibility(View.VISIBLE);
+        }
+
+        if (!DEBUG_MODE) {
+            mpHelper.start();
+        }
     }
 
     /**
@@ -120,11 +135,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      * Stops the thread
      */
     public void pause(View view) {
-        if (playerStateManager.getState().equals(PlayerState.PLAYING)) {
-            mpHelper.pause();
-        } else if (savedRunStateManager.getState().equals(SavedRunStates.PLAYING))
-            savedRunStateManager.pauseThread();
+        if (playerStateManager.getState() == PlayerState.PLAYING) {
+            findViewById(R.id.play).setVisibility(View.VISIBLE);
+            findViewById(R.id.pause).setVisibility(View.GONE);
+        }
 
+        if (!DEBUG_MODE) {
+            if (playerStateManager.getState().equals(PlayerState.PLAYING)) {
+                mpHelper.pause();
+            } else if (savedRunStateManager.getState().equals(SavedRunStates.PLAYING))
+                savedRunStateManager.pauseThread();
+        }
     }
 
     /**
@@ -132,10 +153,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      * Stops the thread
      */
     public void stop(View view) {
-        if (!savedRunStateManager.getState().equals(SavedRunStates.STOPPED))
-            savedRunStateManager.stopThread();
-        else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
-            mpHelper.stop();
+        if (playerStateManager.getState() == PlayerState.PLAYING) {
+            findViewById(R.id.play).setVisibility(View.VISIBLE);
+            findViewById(R.id.pause).setVisibility(View.GONE);
+        }
+
+        if (!DEBUG_MODE) {
+            if (!savedRunStateManager.getState().equals(SavedRunStates.STOPPED))
+                savedRunStateManager.stopThread();
+            else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
+                mpHelper.stop();
+            }
         }
     }
 

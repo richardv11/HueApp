@@ -45,6 +45,7 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:contentDescription="@string/pause"
+                android:visibility="gone"
                 android:onClick="pause"
                 android:src="@drawable/pause_selector" />
 
