@@ -9,10 +9,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -116,7 +118,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                             adapter.remove(adapter.getItem(pos));
                     }
                 });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         dialog.cancel();
                     }
@@ -174,17 +176,53 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             stateManager.stopThread();
         } else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
             PlayerStateManager.getInstance().stopPlayer();
+
             for (PHLight light : hueHelper.getLightsInUse()) {
                 try {
                     hueHelper.toggleLightOff(light);
-                    // TODO: Prompt user for name
-
-                    srHelper.saveSavedRun(db, "Name");
                 } catch (HueHelperException e) {
                     Log.e(TAG, "stop: ", e);
                 }
             }
             PlayerStateManager.getInstance().playerStopped();
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Would you like to save this run?");
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Save the run, prompt for name
+                    AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+                    builder2.setTitle("Give this run a name:");
+                    final EditText input = new EditText(context);
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder2.setView(input);
+                    builder2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            try {
+                                srHelper.saveSavedRun(db, input.getText().toString());
+                            } catch (HueHelperException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    builder2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder2.show();
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 
@@ -198,11 +236,28 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                     run(selected, 0);
                 stateManager.playerStarted();
             } else {
-                // TODO: Warn user that the main player must be stopped before starting a saved run.
-                Toast.makeText(this, "Main player must be stopped", Toast.LENGTH_SHORT).show();
+                // Warn user that the saved run player must be stopped before starting a saved run?
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
+                builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
         } else {
-            Toast.makeText(this, "Please enable a light first", Toast.LENGTH_SHORT).show();
+            // Notify the user that a light is needed?
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Choose some lights to begin listening!");
+            builder.setPositiveButton("Will do", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 
@@ -212,10 +267,6 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         } else if (stateManager.getState().equals(SavedRunStates.PLAYING)) {
             stateManager.pauseThread();
         }
-    }
-
-    public void deleteSavedRun(String name) {
-        srHelper.deleteSavedRun(db, name);
     }
 
     public void changeSavedRunName(String oldName, String newName) {

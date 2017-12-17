@@ -62,7 +62,7 @@ public class MainPlayerHelper {
         return instance;
     }
 
-    public void setContext(Context context){
+    public void setContext(Context context) {
         this.context = context;
     }
 
@@ -100,9 +100,7 @@ public class MainPlayerHelper {
                 dialog.show();
             }
 
-        } else
-
-        {
+        } else {
             // Notify the user that a light is needed?
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
@@ -153,7 +151,7 @@ public class MainPlayerHelper {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             try {
-                                srHelper.saveSavedRun(db,input.getText().toString());
+                                srHelper.saveSavedRun(db, input.getText().toString());
                             } catch (HueHelperException e) {
                                 e.printStackTrace();
                             }
