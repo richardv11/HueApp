@@ -35,7 +35,7 @@ import a477.hueapp.hue.PHPushlinkActivity;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     private PHHueSDK phHueSDK;
-    public static final String TAG = "CS477Hue";
+    public static final String TAG = "HUE_APP";
     private HueSharedPreferences prefs;
     private AccessPointListAdapter adapter;
 

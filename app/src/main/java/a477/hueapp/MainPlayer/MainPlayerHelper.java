@@ -30,6 +30,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class MainPlayerHelper {
 
+    private final String TAG = "HUE_APP_MainPlayHelper";
     private static MainPlayerHelper instance;
     private PlayerStateManager playerStateManager;
     private SavedRunStateManager srStateManager;
@@ -70,7 +71,7 @@ public class MainPlayerHelper {
                             hueHelper.setSaturation(light, 150);
                             hueHelper.setHue(light, 65535);
                         } catch (HueHelperException e) {
-                            Log.d("HUE APP", "play: Failed to start up lights");
+                            Log.d(TAG, "play: Failed to start up lights");
                         }
                     }
                     // Change state to playing
@@ -132,7 +133,7 @@ public class MainPlayerHelper {
                             if (!playerStateManager.getState().equals(PlayerState.PLAYING)) {
                                 throw new InterruptedException("Thread is stopped/paused");
                             }
-                            Log.i("TARSOS_PITCH", String.valueOf(pitchInHz));
+                            Log.i(TAG, "Tarsos-Pitch: " + String.valueOf(pitchInHz));
 
                             // Try and change the light
                             try {
@@ -147,7 +148,7 @@ public class MainPlayerHelper {
                                 }
                             } catch (HueHelperException e2) {
                                 // Something went wrong with the note change
-                                Log.e("HUE APP", "handlePitch: ", e2);
+                                Log.e(TAG, "handlePitch: ", e2);
                             }
                         } catch (InterruptedException e3) {
                             // Our state changed

@@ -1,21 +1,15 @@
 package a477.hueapp;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.madrapps.pikolo.HSLColorPicker;
 import com.madrapps.pikolo.listeners.SimpleColorSelectionListener;
-import com.philips.lighting.model.PHLight;
 
 import a477.hueapp.MainPlayer.MainPlayerHelper;
-import a477.hueapp.hue.HueHelperException;
 
 public class Settings extends AppCompatActivity implements View.OnClickListener{
 

@@ -26,6 +26,8 @@ import a477.hueapp.savedRuns.SavedRunsHelper;
 
 public class HomeActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private final String TAG = "HUE_APP_HomeActivity";
+
     private boolean DEBUG_MODE;
 
     ResideMenu resideMenu;
@@ -97,7 +99,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 hueHelper.rebuildLightsInUse();
             } catch (HueHelperException e) {
-                Log.d("HUE_APP", "onCreate: " + e);
+                Log.d(TAG, "onCreate: " + e);
             }
 
             // Grab the lights into a map, and populate list using popLightList().

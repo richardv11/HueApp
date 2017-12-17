@@ -18,7 +18,7 @@ import static android.media.CamcorderProfile.get;
 
 @SuppressWarnings("unused")
 public class HueHelper {
-    private final String TAG = "HueHelper";
+    private final String TAG = "HUE_APP_HueHelper";
     public final String PREFS = "LIGHTS_IN_USE";
     private final PHHueSDK phHueSDK;
     private ArrayList<PHLight> lightsInUse;

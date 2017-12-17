@@ -17,13 +17,6 @@ import com.philips.lighting.model.PHHueParsingError;
 
 import a477.hueapp.R;
 
-/**
- * Activity which gives hint for manual pushlink. needs to add <activity
- * android:theme="@android:style/Theme.Dialog" /> in manifest file
- * 
- * 
- */
-
 public class PHPushlinkActivity extends Activity {
     private ProgressBar pbar;
     private static final int MAX_TIME=30;

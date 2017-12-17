@@ -26,12 +26,13 @@ import a477.hueapp.savedRuns.SavedRunsHelper;
 
 public class SavedSongs extends AppCompatActivity implements View.OnClickListener {
 
+    private final String TAG = "HUE_APP_SavedSongs";
+
     ResideMenu resideMenu;
     private ResideMenuItem itemHome, itemSettings;
     Toolbar toolbar;
 
     private boolean DEBUG_MODE;
-    private final String PREF_NAME = "hue_pref";
 
     private ArrayAdapter<String> adapter;
     private SavedRunsHelper srHelper;
@@ -117,7 +118,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             try {
                 hueHelper.toggleLightOn(light);
             } catch (HueHelperException e) {
-                Log.e("SavedSongs", "run: ", e);
+                Log.e(TAG, "run: ", e);
             }
         }
 
@@ -160,7 +161,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
 
                     srHelper.saveSavedRun(db, "Name");
                 } catch (HueHelperException e) {
-                    Log.e("HUE APP", "stop: ", e);
+                    Log.e(TAG, "stop: ", e);
                 }
             }
             PlayerStateManager.getInstance().playerStopped();

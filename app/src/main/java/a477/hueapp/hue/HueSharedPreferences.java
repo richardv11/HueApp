@@ -26,7 +26,7 @@ public class HueSharedPreferences {
     }
 
     private HueSharedPreferences(Context appContext) {
-        mSharedPreferences = appContext.getSharedPreferences(HUE_SHARED_PREFERENCES_STORE, 0); // 0 - for private mode
+        mSharedPreferences = appContext.getSharedPreferences(HUE_SHARED_PREFERENCES_STORE, 0);
         mSharedPreferencesEditor = mSharedPreferences.edit();
     }
 
