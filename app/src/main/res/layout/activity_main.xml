@@ -45,7 +45,6 @@
                 android:layout_height="wrap_content"
                 android:background="@null"
                 android:contentDescription="@string/pause"
-                android:visibility="gone"
                 android:onClick="pause"
                 android:src="@drawable/pause_selector" />
 
@@ -56,7 +55,9 @@
                 android:background="@null"
                 android:contentDescription="@string/stop"
                 android:onClick="stop"
-                android:src="@drawable/stop_selector" />
+                android:src="@drawable/stop_selector"
+                android:paddingRight="5dp"
+                android:paddingEnd="5dp"/>
         </LinearLayout>
     </android.support.v7.widget.Toolbar>
 

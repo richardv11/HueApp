@@ -19,6 +19,7 @@ import java.util.Map;
 
 import a477.hueapp.MainPlayer.MainPlayerHelper;
 import a477.hueapp.hue.HueHelper;
+import a477.hueapp.hue.HueHelperException;
 import a477.hueapp.savedRuns.SavedRunStateManager;
 import a477.hueapp.savedRuns.SavedRunStates;
 import a477.hueapp.savedRuns.SavedRunsHelper;
@@ -91,6 +92,14 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             db = srHelper.getWritableDatabase();
             savedRunStateManager = SavedRunStateManager.getInstance();
 
+            hueHelper.setSharedPreferences(getPreferences(0));
+
+            try {
+                hueHelper.rebuildLightsInUse();
+            } catch (HueHelperException e) {
+                Log.d("HUE_APP", "onCreate: " + e);
+            }
+
             // Grab the lights into a map, and populate list using popLightList().
             lightsMap = hueHelper.getLights();
             // listView adapter is set in popLightList()
@@ -121,11 +130,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @TargetApi(23)
     public void play(View view) {
-        if (playerStateManager.getState() != PlayerState.PLAYING) {
-            findViewById(R.id.play).setVisibility(View.GONE);
-            findViewById(R.id.pause).setVisibility(View.VISIBLE);
-        }
-
         if (!DEBUG_MODE) {
             mpHelper.start();
         }
@@ -136,11 +140,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      * Stops the thread
      */
     public void pause(View view) {
-        if (playerStateManager.getState() == PlayerState.PLAYING) {
-            findViewById(R.id.play).setVisibility(View.VISIBLE);
-            findViewById(R.id.pause).setVisibility(View.GONE);
-        }
-
         if (!DEBUG_MODE) {
             if (playerStateManager.getState().equals(PlayerState.PLAYING)) {
                 mpHelper.pause();
@@ -154,10 +153,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      * Stops the thread
      */
     public void stop(View view) {
-        if (playerStateManager.getState() == PlayerState.PLAYING) {
-            findViewById(R.id.play).setVisibility(View.VISIBLE);
-            findViewById(R.id.pause).setVisibility(View.GONE);
-        }
 
         if (!DEBUG_MODE) {
             if (!savedRunStateManager.getState().equals(SavedRunStates.STOPPED))

@@ -39,6 +39,13 @@ public class MyListView extends ArrayAdapter<String> {
         final TextView textView = (TextView) rowView.findViewById(R.id.lightText);
         final ImageButton imageButton = (ImageButton) rowView.findViewById(R.id.toggle_image);
 
+        for(PHLight light : HueHelper.getInstance().getLightsInUse()){
+            if (values.get(position).equals(light.getName())) {
+                imageButton.setSelected(true);
+                break;
+            }
+        }
+
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

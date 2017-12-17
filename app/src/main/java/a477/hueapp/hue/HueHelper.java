@@ -1,5 +1,6 @@
 package a477.hueapp.hue;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.philips.lighting.hue.listener.PHLightListener;
@@ -18,16 +19,19 @@ import static android.media.CamcorderProfile.get;
 @SuppressWarnings("unused")
 public class HueHelper {
     private final String TAG = "HueHelper";
+    public final String PREFS = "LIGHTS_IN_USE";
     private final PHHueSDK phHueSDK;
     private ArrayList<PHLight> lightsInUse;
+    private ArrayList<String> lightsInUseNames;
     private int lastLight;
     private static HueHelper instance;
+    private SharedPreferences sharedPreferences;
 
     private HueHelper() {
         phHueSDK = PHHueSDK.getInstance();
         lightsInUse = new ArrayList<>();
+        lightsInUseNames = new ArrayList<>();
         lastLight = 0;
-
         // TESTING PURPOSES
 //        lightsInUse.add(getLights().get("3"));
 //        lightsInUse.add(getLights().get("12"));
@@ -345,6 +349,15 @@ public class HueHelper {
 
     public synchronized void addLightInUse(PHLight light) {
         lightsInUse.add(light);
+        lightsInUseNames.add(light.getName());
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            String tmp = "";
+            for(String lName : lightsInUseNames)
+                tmp += lName + ",";
+            editor.putString(PREFS,tmp.substring(0,tmp.length()-1));
+            editor.apply();
+        }
     }
 
     public synchronized PHLight deleteLightInUse(PHLight light) {
@@ -353,10 +366,48 @@ public class HueHelper {
             PHLight l = lightsInUse.get(i);
             if (l.getName().equals(light.getName())) {
                 toReturn = l;
+                lightsInUseNames.remove(l.getName());
                 lightsInUse.remove(i);
                 break;
             }
         }
+        if(sharedPreferences != null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            String tmp = "";
+            for(String lName : lightsInUseNames)
+                tmp += lName + ",";
+            if(tmp.length() > 0)
+                editor.putString(PREFS,tmp.substring(0,tmp.length()-1));
+            else
+                editor.putString(PREFS,tmp);
+            editor.apply();
+        }
         return toReturn;
+    }
+
+    public void rebuildLightsInUse() throws HueHelperException{
+        if(sharedPreferences == null){
+            throw new HueHelperException("No shared preferences");
+        }
+        lightsInUse = new ArrayList<>();
+        lightsInUseNames = new ArrayList<>();
+        String lightString = sharedPreferences.getString(PREFS,"");
+        Map<String, PHLight> lights = getLights();
+        for(String light : lightString.split(",")){
+            for(PHLight l : lights.values()){
+                if(l.getName().equals(light)){
+                    lightsInUse.add(l);
+                    lightsInUseNames.add(l.getName());
+                }
+            }
+        }
+    }
+
+    public SharedPreferences getSharedPreferences() {
+        return sharedPreferences;
+    }
+
+    public void setSharedPreferences(SharedPreferences sharedPreferences) {
+        this.sharedPreferences = sharedPreferences;
     }
 }
