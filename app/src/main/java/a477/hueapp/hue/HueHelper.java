@@ -50,7 +50,6 @@ public class HueHelper {
 
     /**
      * Returns the next light in the list of lights in use
-     *
      * @return The next light
      * @throws HueHelperException Thrown if there are no lights in use
      */
