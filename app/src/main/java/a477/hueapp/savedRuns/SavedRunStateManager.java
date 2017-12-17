@@ -1,15 +1,12 @@
 package a477.hueapp.savedRuns;
 
-/**
- * Created by mrodger4 on 12/16/17.
- */
-
 public class SavedRunStateManager {
 
     private static SavedRunStateManager instance;
 
     private SavedRunStates playerState;
     private int lastNoteIndex;
+    private Thread runThread;
 
     private SavedRunStateManager(){
         playerState = SavedRunStates.STOPPED;
@@ -20,10 +17,6 @@ public class SavedRunStateManager {
         if(instance == null)
             instance = new SavedRunStateManager();
         return instance;
-    }
-
-    private SavedRunStates getPlayerState(){
-        return playerState;
     }
 
     public void playerStarted(){
@@ -49,5 +42,24 @@ public class SavedRunStateManager {
 
     public int getLastNoteIndex(){
         return lastNoteIndex;
+    }
+
+    public void setRunThread(Thread runThread){
+        this.runThread = runThread;
+    }
+
+    public void pauseThread(){
+        if(playerState.equals(SavedRunStates.PLAYING)) {
+            runThread.interrupt();
+            playerPaused();
+        }
+    }
+
+    public void stopThread(){
+        if(playerState.equals(SavedRunStates.PLAYING)) {
+            if (runThread != null)
+                runThread.interrupt();
+            playerStopped();
+        }
     }
 }

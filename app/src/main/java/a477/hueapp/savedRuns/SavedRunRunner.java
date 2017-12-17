@@ -18,7 +18,8 @@ public class SavedRunRunner implements Runnable {
     public void run() {
         hueHelper = HueHelper.getInstance();
         String[] notes = run.split(",");
-        for (int i = startingIndex; i < notes.length; i++) {
+        int i = 0;
+        for (i = startingIndex; i < notes.length; i++) {
             SavedRunStateManager.getInstance().setLastNoteIndex(i);
             String[] tmp = notes[i].split(" ");
             String freq = tmp[0];
@@ -51,6 +52,11 @@ public class SavedRunRunner implements Runnable {
 //                    e.printStackTrace();
                 }
             }
+        }
+
+        // If we get to the end of the notes array then we are done with this run
+        if(i == notes.length){
+            SavedRunStateManager.getInstance().playerStopped();
         }
 
         // Turn off the lights
