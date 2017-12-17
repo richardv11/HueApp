@@ -8,7 +8,9 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.text.InputType;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.philips.lighting.model.PHLight;
@@ -42,6 +44,7 @@ public class MainPlayerHelper {
     private AudioDispatcher dispatcher;
     private double pitchInHz;
     private SharedPreferences sharedpreferences;
+    private Context context;
     private final String PREF_NAME = "hue_pref";
 
     private MainPlayerHelper(Context context) {
@@ -59,7 +62,11 @@ public class MainPlayerHelper {
         return instance;
     }
 
-    public void start(Context context) {
+    public void setContext(Context context){
+        this.context = context;
+    }
+
+    public void start() {
         if (hueHelper.getLightsInUse().size() > 0) {
             // Make sure the Saved Run player isn't running
             if (srStateManager.getState().equals(SavedRunStates.STOPPED)) {
@@ -81,7 +88,7 @@ public class MainPlayerHelper {
                     createThread();
 
                 } else {
-                    // TODO: Warn user that the saved run player must be stopped before starting a saved run?
+                    // Alert user about state of sr player
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
                     builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
@@ -94,7 +101,7 @@ public class MainPlayerHelper {
                 }
             }
         } else {
-            // TODO: Notify the user that a light is needed?
+            // Alert the user about choosing lights in order to start
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
             builder.setPositiveButton("Will do", new DialogInterface.OnClickListener() {
@@ -130,8 +137,44 @@ public class MainPlayerHelper {
             }
 
             // Then check to see if the user wants to save the run
-            // TODO: Prompt the user to save the run.
-            // TODO: Save the run.
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Would you like to save this run?");
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Save the run, prompt for name
+                    AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+                    builder2.setTitle("Give this run a name:");
+                    final EditText input = new EditText(context);
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder2.setView(input);
+                    builder2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            input.getText().toString();
+                            try {
+                                srHelper.saveSavedRun(db,"");
+                            } catch (HueHelperException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                    builder2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    builder2.show();
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 
