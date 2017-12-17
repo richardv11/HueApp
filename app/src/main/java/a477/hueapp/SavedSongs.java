@@ -158,23 +158,27 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     }
 
     public void playSavedSong(View view) {
-        if (PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
-            // If we were paused restart the run. Else start a new one.
-            if (stateManager.getState().equals(SavedRunStates.PAUSED)) {
-                run(selected, stateManager.getLastNoteIndex());
-            } else if (selected != null && !selected.equals("") && stateManager.getState().equals(SavedRunStates.STOPPED))
-                run(selected, 0);
-            stateManager.playerStarted();
-        } else {
-            // TODO: Warn user that the main player must be stopped before starting a saved run.
-            Toast.makeText(this, "Main player must be stopped", Toast.LENGTH_SHORT).show();
+        if (hueHelper.getLightsInUse().size() > 0) {
+            if (PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
+                // If we were paused restart the run. Else start a new one.
+                if (stateManager.getState().equals(SavedRunStates.PAUSED)) {
+                    run(selected, stateManager.getLastNoteIndex());
+                } else if (selected != null && !selected.equals("") && stateManager.getState().equals(SavedRunStates.STOPPED))
+                    run(selected, 0);
+                stateManager.playerStarted();
+            } else {
+                // TODO: Warn user that the main player must be stopped before starting a saved run.
+                Toast.makeText(this, "Main player must be stopped", Toast.LENGTH_SHORT).show();
+            }
+        } else{
+            Toast.makeText(this, "Please enable a light first", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void pauseSavedSong(View view) {
-        if(PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)){
+        if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
 
-        } else if(stateManager.getState().equals(SavedRunStates.PLAYING)){
+        } else if (stateManager.getState().equals(SavedRunStates.PLAYING)) {
             stateManager.pauseThread();
         }
     }

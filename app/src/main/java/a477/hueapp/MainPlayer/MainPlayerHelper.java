@@ -3,6 +3,7 @@ package a477.hueapp.MainPlayer;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.philips.lighting.model.PHLight;
 
@@ -46,33 +47,37 @@ public class MainPlayerHelper {
     }
 
     public void start() {
-        // Make sure the Saved Run player isn't running
-        if (srStateManager.getState().equals(SavedRunStates.STOPPED)) {
-            // If we are not already started then start
-            if (!playerStateManager.getState().equals(PlayerState.PLAYING)) {
-                // Do setup
-                for (PHLight light : hueHelper.getLightsInUse()) {
-                    try {
-                        hueHelper.toggleLightOn(light);
-                        hueHelper.setBrightness(light, 100);
-                        hueHelper.setSaturation(light, 150);
-                        hueHelper.setHue(light, 65535);
-                    } catch (HueHelperException e) {
-                        Log.d("HUE APP", "play: Failed to start up lights");
+        if (hueHelper.getLightsInUse().size() > 0) {
+            // Make sure the Saved Run player isn't running
+            if (srStateManager.getState().equals(SavedRunStates.STOPPED)) {
+                // If we are not already started then start
+                if (!playerStateManager.getState().equals(PlayerState.PLAYING)) {
+                    // Do setup
+                    for (PHLight light : hueHelper.getLightsInUse()) {
+                        try {
+                            hueHelper.toggleLightOn(light);
+                            hueHelper.setBrightness(light, 100);
+                            hueHelper.setSaturation(light, 150);
+                            hueHelper.setHue(light, 65535);
+                        } catch (HueHelperException e) {
+                            Log.d("HUE APP", "play: Failed to start up lights");
+                        }
                     }
+                    // Change state to playing
+                    playerStateManager.playerStarted();
+
+                    MainPlayerRunner runner = new MainPlayerRunner(context);
+                    Thread mainPlayerThread = new Thread(runner);
+                    playerStateManager.setMainPlayerThread(mainPlayerThread);
+                    mainPlayerThread.start();
+
+                } else {
+                    // TODO: Warn user that the saved run player must be stopped before starting a saved run.
+
                 }
-                // Change state to playing
-                playerStateManager.playerStarted();
-
-                MainPlayerRunner runner = new MainPlayerRunner(context);
-                Thread mainPlayerThread = new Thread(runner);
-                playerStateManager.setMainPlayerThread(mainPlayerThread);
-                mainPlayerThread.start();
-
-            } else {
-                // TODO: Warn user that the saved run player must be stopped before starting a saved run.
-
             }
+        } else {
+            Toast.makeText(context, "Please enable a light first", Toast.LENGTH_SHORT).show();
         }
     }
 
