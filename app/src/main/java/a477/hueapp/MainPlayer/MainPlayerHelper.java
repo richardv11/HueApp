@@ -151,7 +151,11 @@ public class MainPlayerHelper {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             try {
-                                srHelper.saveSavedRun(db, input.getText().toString());
+                                if (input.getText().toString().length() > 0) {
+                                    srHelper.saveSavedRun(db, input.getText().toString());
+                                } else {
+                                    // Can't save an empty name
+                                }
                             } catch (HueHelperException e) {
                                 e.printStackTrace();
                             }
@@ -237,10 +241,9 @@ public class MainPlayerHelper {
     /**
      * not really the best way.. but for access from Settings
      */
-    public HueHelper getHueHelper() {
-        return this.hueHelper;
-    }
-
+//    public HueHelper getHueHelper() {
+//        return this.hueHelper;
+//    }
     public void save_settings(int[] rgb) {
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.putInt("red", rgb[0]);

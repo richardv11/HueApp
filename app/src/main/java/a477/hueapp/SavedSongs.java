@@ -30,6 +30,8 @@ import a477.hueapp.savedRuns.SavedRunStateManager;
 import a477.hueapp.savedRuns.SavedRunStates;
 import a477.hueapp.savedRuns.SavedRunsHelper;
 
+import static android.R.id.edit;
+
 public class SavedSongs extends AppCompatActivity implements View.OnClickListener {
 
     private final String TAG = "HUE_APP_SavedSongs";
@@ -89,7 +91,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             }
         });
 
-        ListView savedRunList = (ListView) findViewById(R.id.savedRunList);
+        final ListView savedRunList = (ListView) findViewById(R.id.savedRunList);
         adapter = new ArrayAdapter<>(this, R.layout.line);
 
         adapter.addAll(srHelper.getAllSavedRunNames(db));
@@ -108,22 +110,63 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final int pos = position;
-                // Ask user if they want to delete this item
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setMessage("Would you like to delete this song?");
-                builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        boolean toReturn = srHelper.deleteSavedRun(db, adapter.getItem(pos));
-                        if (toReturn)
-                            adapter.remove(adapter.getItem(pos));
+                // See if the user wants to save or delete
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
+                builder1.setMessage("Would you like to edit or delete");
+                builder1.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AlertDialog.Builder builder2 = new AlertDialog.Builder(context);
+                        builder2.setTitle("Give this run a name:");
+                        final EditText input = new EditText(context);
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        builder2.setView(input);
+                        builder2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (input.getText().toString().length() > 0) {
+                                    changeSavedRunName(adapter.getItem(pos), input.getText().toString());
+                                    adapter.clear();
+                                    adapter.addAll(srHelper.getAllSavedRunNames(db));
+                                } else {
+                                    Toast.makeText(SavedSongs.this, "Name can't be empty.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        builder2.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        builder2.show();
                     }
                 });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
+                builder1.setNegativeButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Ask user if they want to delete this item
+                        AlertDialog.Builder builder3 = new AlertDialog.Builder(context);
+                        builder3.setMessage("Would you like to delete this song?");
+                        builder3.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                boolean toReturn = srHelper.deleteSavedRun(db, adapter.getItem(pos));
+                                if (toReturn)
+                                    adapter.remove(adapter.getItem(pos));
+                            }
+                        });
+                        builder3.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+                        AlertDialog dialog3 = builder3.create();
+                        dialog3.show();
+
                     }
                 });
-                AlertDialog dialog = builder.create();
+                AlertDialog dialog = builder1.create();
                 dialog.show();
                 return false;
             }
@@ -200,10 +243,15 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             try {
-                                srHelper.saveSavedRun(db, input.getText().toString());
-                                adapter.clear();
-                                adapter.addAll(srHelper.getAllSavedRunNames(db));
+                                if (input.getText().toString().length() > 0) {
+                                    srHelper.saveSavedRun(db, input.getText().toString());
+                                    adapter.clear();
+                                    adapter.addAll(srHelper.getAllSavedRunNames(db));
+                                } else {
+                                    Toast.makeText(SavedSongs.this, "Name can't be empty.", Toast.LENGTH_SHORT).show();
+                                }
                             } catch (HueHelperException e) {
+                                Toast.makeText(SavedSongs.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 e.printStackTrace();
                             }
                         }
