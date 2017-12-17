@@ -1,7 +1,9 @@
 package a477.hueapp.MainPlayer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -57,7 +59,7 @@ public class MainPlayerHelper {
         return instance;
     }
 
-    public void start() {
+    public void start(Context context) {
         if (hueHelper.getLightsInUse().size() > 0) {
             // Make sure the Saved Run player isn't running
             if (srStateManager.getState().equals(SavedRunStates.STOPPED)) {
@@ -80,12 +82,28 @@ public class MainPlayerHelper {
 
                 } else {
                     // TODO: Warn user that the saved run player must be stopped before starting a saved run?
-
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                    builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
+                    builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
                 }
             }
         } else {
             // TODO: Notify the user that a light is needed?
-            // Toast.makeText(this, "Please enable a light first", Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("Choose some lights to begin listening!");
+            builder.setPositiveButton("Will do", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.cancel();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 

@@ -1,6 +1,7 @@
 package a477.hueapp;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.database.sqlite.SQLiteDatabase;
@@ -34,6 +35,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     private ResideMenuItem itemSavedSongs;
     private ResideMenuItem itemSettings;
     Toolbar toolbar;
+    Context context;
 
     HueHelper hueHelper;
     SavedRunsHelper srHelper;
@@ -55,6 +57,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
 
+        context = this;
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
         resideMenu.setBackground(R.drawable.ligh_background);
@@ -133,7 +136,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @TargetApi(23)
     public void play(View view) {
         if (!DEBUG_MODE) {
-            mpHelper.start();
+            mpHelper.start(context);
         }
     }
 
