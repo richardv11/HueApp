@@ -139,9 +139,9 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     }
 
     public void stopSavedSong(View view) {
-        if (stateManager.getState().equals(SavedRunStates.PLAYING)) {
+        if (!stateManager.getState().equals(SavedRunStates.STOPPED)) {
             stateManager.stopThread();
-        } else if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
+        } else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
             PlayerStateManager.getInstance().stopPlayer();
             for (PHLight light : hueHelper.getLightsInUse()) {
                 try {
@@ -164,7 +164,6 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                 run(selected, stateManager.getLastNoteIndex());
             } else if (selected != null && !selected.equals("") && stateManager.getState().equals(SavedRunStates.STOPPED))
                 run(selected, 0);
-
             stateManager.playerStarted();
         } else {
             // TODO: Warn user that the main player must be stopped before starting a saved run.

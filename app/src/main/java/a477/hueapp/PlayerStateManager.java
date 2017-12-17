@@ -17,15 +17,15 @@ public class PlayerStateManager {
         return instance;
     }
 
-    public void playerStarted() {
+    public synchronized void playerStarted() {
         playerState = PlayerState.PLAYING;
     }
 
-    public void playerPaused() {
+    public synchronized void playerPaused() {
         playerState = PlayerState.PAUSED;
     }
 
-    public void playerStopped() {
+    public synchronized void playerStopped() {
         playerState = PlayerState.STOPPED;
     }
 
@@ -33,13 +33,13 @@ public class PlayerStateManager {
         return playerState;
     }
 
-    public void stopPlayer() {
+    public synchronized void stopPlayer() {
         if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
             playerStopped();
         }
     }
 
-    public void setMainPlayerThread(Thread mainPlayerThread) {
+    public synchronized void setMainPlayerThread(Thread mainPlayerThread) {
         this.mainPlayerThread = mainPlayerThread;
     }
 

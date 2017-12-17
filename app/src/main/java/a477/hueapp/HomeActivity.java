@@ -132,9 +132,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
      * Stops the thread
      */
     public void stop(View view) {
-        if (savedRunStateManager.getState().equals(SavedRunStates.PLAYING))
+        if (!savedRunStateManager.getState().equals(SavedRunStates.STOPPED))
             savedRunStateManager.stopThread();
-        else if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
+        else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
             mpHelper.stop();
         }
     }

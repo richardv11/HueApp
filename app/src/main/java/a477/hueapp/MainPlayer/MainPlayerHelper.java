@@ -84,7 +84,7 @@ public class MainPlayerHelper {
 
     public void stop() {
         // If we are playing then stop. If Saved Run player is playing then stop it.
-        if (playerStateManager.getState().equals(PlayerState.PLAYING)) {
+        if (!playerStateManager.getState().equals(PlayerState.STOPPED)) {
             playerStateManager.playerStopped();
 
             // Stop the wrapper thread
