@@ -123,6 +123,9 @@ public class MainPlayerHelper {
 =======
         } else {
             // Alert the user about choosing lights in order to start
+<<<<<<< HEAD
+>>>>>>> f584a3e... prompt for saving runs
+=======
 >>>>>>> f584a3e... prompt for saving runs
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
@@ -173,8 +176,14 @@ public class MainPlayerHelper {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                             try {
                                 srHelper.saveSavedRun(db,input.getText().toString());
+=======
+                            input.getText().toString();
+                            try {
+                                srHelper.saveSavedRun(db,"");
+>>>>>>> f584a3e... prompt for saving runs
 =======
                             input.getText().toString();
                             try {

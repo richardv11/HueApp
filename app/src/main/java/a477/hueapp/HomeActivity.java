@@ -136,8 +136,8 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @TargetApi(23)
     public void play(View view) {
         if (!DEBUG_MODE) {
-            mpHelper.start();
             mpHelper.setContext(context);
+            mpHelper.start();
         }
     }
 
