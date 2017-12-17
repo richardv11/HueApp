@@ -1,5 +1,9 @@
 package a477.hueapp;
 
+import android.app.AlertDialog;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -40,11 +44,13 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     private SavedRunStateManager stateManager;
     private SQLiteDatabase db;
     private String selected;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_saved_songs);
+        context = this;
 
         DEBUG_MODE = getIntent().getBooleanExtra("DEBUG_MODE", false);
 
@@ -97,13 +103,27 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         });
 
         savedRunList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                boolean toReturn = srHelper.deleteSavedRun(db, adapter.getItem(position));
-                if (toReturn)
-                    adapter.remove(adapter.getItem(position));
-                return toReturn;
+                final int pos = position;
+                // Ask user if they want to delete this item
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage("Would you like to delete this song?");
+                builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        boolean toReturn = srHelper.deleteSavedRun(db, adapter.getItem(pos));
+                        if (toReturn)
+                            adapter.remove(adapter.getItem(pos));
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
+                return false;
             }
         });
 
