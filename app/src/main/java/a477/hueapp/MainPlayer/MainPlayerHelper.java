@@ -79,21 +79,23 @@ public class MainPlayerHelper {
                     // Change state to playing
                     playerStateManager.playerStarted();
                     createThread();
-
-                } else {
-                    // TODO: Warn user that the saved run player must be stopped before starting a saved run?
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
-                    builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
                 }
+            } else {
+                // TODO: Warn user that the saved run player must be stopped before starting a saved run?
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
+                builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+                AlertDialog dialog = builder.create();
+                dialog.show();
             }
-        } else {
+
+        } else
+
+        {
             // TODO: Notify the user that a light is needed?
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
@@ -105,6 +107,7 @@ public class MainPlayerHelper {
             AlertDialog dialog = builder.create();
             dialog.show();
         }
+
     }
 
     public void pause() {
