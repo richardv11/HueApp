@@ -88,7 +88,7 @@ public class MainPlayerHelper {
                     createThread();
                 }
             } else {
-                // TODO: Warn user that the saved run player must be stopped before starting a saved run?
+                // Warn user that the saved run player must be stopped before starting a saved run?
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
                 builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
@@ -103,7 +103,7 @@ public class MainPlayerHelper {
         } else
 
         {
-            // TODO: Notify the user that a light is needed?
+            // Notify the user that a light is needed?
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
             builder.setPositiveButton("Will do", new DialogInterface.OnClickListener() {
@@ -152,9 +152,8 @@ public class MainPlayerHelper {
                     builder2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            input.getText().toString();
                             try {
-                                srHelper.saveSavedRun(db,"");
+                                srHelper.saveSavedRun(db,input.getText().toString());
                             } catch (HueHelperException e) {
                                 e.printStackTrace();
                             }
