@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import com.madrapps.pikolo.HSLColorPicker;
 import com.madrapps.pikolo.listeners.SimpleColorSelectionListener;
 
+import a477.hueapp.MainPlayer.MainPlayerHelper;
 import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
 
@@ -23,6 +24,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
     private ResideMenuItem itemHome, itemSavedSongs;
     private boolean DEBUG_MODE;
     private HueHelper hueHelper;
+    private MainPlayerHelper mpHelper;
     SharedPreferences sharedpreferences;
     private final String PREF_NAME = "hue_pref";
 
@@ -71,7 +73,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         final HSLColorPicker colorPicker = (HSLColorPicker) findViewById(R.id.colorPicker);
         final ImageView imageView = (ImageView) findViewById(R.id.imageView);
         if (!DEBUG_MODE) {
-            hueHelper = new HueHelper();
+            mpHelper = MainPlayerHelper.getInstance(getApplicationContext());
         }
 
         sharedpreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
@@ -96,6 +98,8 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
 
                 if (!DEBUG_MODE) {
                     try {
+                        mpHelper.stop();
+                        hueHelper = mpHelper.getHueHelper();
                         hueHelper.setXY(hueHelper.getNextLight(), f[0], f[1]);
                     } catch (HueHelperException e) {
                         e.printStackTrace();
