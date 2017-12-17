@@ -201,6 +201,8 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                         public void onClick(DialogInterface dialog, int which) {
                             try {
                                 srHelper.saveSavedRun(db, input.getText().toString());
+                                adapter.clear();
+                                adapter.addAll(srHelper.getAllSavedRunNames(db));
                             } catch (HueHelperException e) {
                                 e.printStackTrace();
                             }
