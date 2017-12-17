@@ -136,7 +136,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @TargetApi(23)
     public void play(View view) {
         if (!DEBUG_MODE) {
-            mpHelper.setContext(getApplicationContext());
+            mpHelper.setContext(context);
             mpHelper.start();
         }
     }
@@ -164,7 +164,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             if (!savedRunStateManager.getState().equals(SavedRunStates.STOPPED))
                 savedRunStateManager.stopThread();
             else if (!PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
-                mpHelper.setContext(getApplicationContext());
+                mpHelper.setContext(context);
                 mpHelper.stop();
             }
         }
