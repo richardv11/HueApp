@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import com.philips.lighting.model.PHLight;
 
+import java.util.HashMap;
+
 import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
 import a477.hueapp.savedRuns.SavedRunContract;
@@ -170,7 +172,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
                 // TODO: Warn user that the main player must be stopped before starting a saved run.
                 Toast.makeText(this, "Main player must be stopped", Toast.LENGTH_SHORT).show();
             }
-        } else{
+        } else {
             Toast.makeText(this, "Please enable a light first", Toast.LENGTH_SHORT).show();
         }
     }
@@ -181,5 +183,15 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         } else if (stateManager.getState().equals(SavedRunStates.PLAYING)) {
             stateManager.pauseThread();
         }
+    }
+
+    public void deleteSavedRun(String name) {
+        srHelper.deleteSavedRun(db, name);
+    }
+
+    public void changeSavedRunName(String oldName, String newName) {
+        HashMap<String, String> oldRun = srHelper.getSavedRun(db, oldName);
+        srHelper.deleteSavedRun(db, oldName);
+        srHelper.saveSavedRun(db, newName, oldRun.get(SavedRunContract.SavedRunEntry.RUN_PATTERN));
     }
 }

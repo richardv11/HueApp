@@ -73,8 +73,22 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
                 // Don't want to clear here. Maybe want to give them an option to try saving again?
                 return false;
             }
-        } else{
+        } else {
             throw new HueHelperException("Empty Run");
+        }
+    }
+
+    public boolean saveSavedRun(SQLiteDatabase db, String name, String pattern) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put(SavedRunContract.SavedRunEntry.RUN_NAME, name);
+            cv.put(SavedRunContract.SavedRunEntry.RUN_PATTERN, pattern);
+            db.insert(SavedRunContract.SavedRunEntry.TABLE_NAME, null, cv);
+            return true;
+        } catch (SQLException e) {
+            Log.e(TAG, " - Exception: " + e);
+            // Don't want to clear here. Maybe want to give them an option to try saving again?
+            return false;
         }
     }
 
