@@ -86,21 +86,6 @@ public class MainPlayerHelper {
                     // Change state to playing
                     playerStateManager.playerStarted();
                     createThread();
-<<<<<<< HEAD
-=======
-
-                } else {
-                    // Alert user about state of sr player
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage("Looks like you're playing a saved song. Once you you stop that, you can begin listening!");
-                    builder.setPositiveButton("Got it!", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
->>>>>>> f584a3e... prompt for saving runs
                 }
             } else {
                 // Warn user that the saved run player must be stopped before starting a saved run?
@@ -114,19 +99,11 @@ public class MainPlayerHelper {
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }
-<<<<<<< HEAD
 
         } else
 
         {
             // Notify the user that a light is needed?
-=======
-        } else {
-            // Alert the user about choosing lights in order to start
-<<<<<<< HEAD
->>>>>>> f584a3e... prompt for saving runs
-=======
->>>>>>> f584a3e... prompt for saving runs
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             builder.setMessage("Choose some lights to begin listening!");
             builder.setPositiveButton("Will do", new DialogInterface.OnClickListener() {
@@ -175,20 +152,8 @@ public class MainPlayerHelper {
                     builder2.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-<<<<<<< HEAD
-<<<<<<< HEAD
                             try {
                                 srHelper.saveSavedRun(db,input.getText().toString());
-=======
-                            input.getText().toString();
-                            try {
-                                srHelper.saveSavedRun(db,"");
->>>>>>> f584a3e... prompt for saving runs
-=======
-                            input.getText().toString();
-                            try {
-                                srHelper.saveSavedRun(db,"");
->>>>>>> f584a3e... prompt for saving runs
                             } catch (HueHelperException e) {
                                 e.printStackTrace();
                             }
