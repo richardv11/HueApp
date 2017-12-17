@@ -21,15 +21,22 @@ public class HueHelper {
     private final PHHueSDK phHueSDK;
     private ArrayList<PHLight> lightsInUse;
     private int lastLight;
+    private static HueHelper instance;
 
-    public HueHelper() {
+    private HueHelper() {
         phHueSDK = PHHueSDK.getInstance();
         lightsInUse = new ArrayList<>();
         lastLight = 0;
 
         // TESTING PURPOSES
-        lightsInUse.add(getLights().get("3"));
-        lightsInUse.add(getLights().get("12"));
+//        lightsInUse.add(getLights().get("3"));
+//        lightsInUse.add(getLights().get("12"));
+    }
+
+    public static HueHelper getInstance() {
+        if (instance == null)
+            instance = new HueHelper();
+        return instance;
     }
 
     /**
@@ -47,11 +54,13 @@ public class HueHelper {
      * @return The next light
      * @throws HueHelperException Thrown if there are no lights in use
      */
-    public PHLight getNextLight() throws HueHelperException {
+    public synchronized PHLight getNextLight() throws HueHelperException {
         if (lightsInUse.size() < 0) throw new HueHelperException("No lights in use");
         else {
-            if(lastLight >= lightsInUse.size())
-                lastLight=0;
+            if (lastLight >= lightsInUse.size())
+                lastLight = 0;
+            if(lightsInUse.isEmpty())
+                return null;
             return lightsInUse.get(lastLight++);
         }
     }
@@ -62,7 +71,14 @@ public class HueHelper {
      * @param light The light to change
      */
     public void toggleLightOn(PHLight light) throws HueHelperException {
-        if(light.getLastKnownLightState().isOn())
+        // Get the real status of the light
+        List<PHLight> lights = phHueSDK.getSelectedBridge().getResourceCache().getAllLights();
+        for (PHLight l : lights) {
+            if (l.getName().equals(light.getName())) {
+                light = l;
+            }
+        }
+        if (light.getLastKnownLightState().isOn())
             throw new HueHelperException("Light is already on");
         else {
             PHLightState lightState = new PHLightState();
@@ -78,7 +94,14 @@ public class HueHelper {
      * @param light The light to change
      */
     public void toggleLightOff(PHLight light) throws HueHelperException {
-        if(!light.getLastKnownLightState().isOn())
+        // Get the real status of the light
+        List<PHLight> lights = phHueSDK.getSelectedBridge().getResourceCache().getAllLights();
+        for (PHLight l : lights) {
+            if (l.getName().equals(light.getName())) {
+                light = l;
+            }
+        }
+        if (!light.getLastKnownLightState().isOn())
             throw new HueHelperException("Light is already off");
         else {
             PHLightState lightState = new PHLightState();
@@ -312,19 +335,19 @@ public class HueHelper {
         }
     };
 
-    public ArrayList<PHLight> getLightsInUse() {
+    public synchronized ArrayList<PHLight> getLightsInUse() {
         return lightsInUse;
     }
 
-    public void setLightsInUse(ArrayList<PHLight> lightsInUse) {
+    public synchronized void setLightsInUse(ArrayList<PHLight> lightsInUse) {
         this.lightsInUse = lightsInUse;
     }
 
-    public void addLightInUse(PHLight light) {
+    public synchronized void addLightInUse(PHLight light) {
         lightsInUse.add(light);
     }
 
-    public PHLight deleteLightInUse(PHLight light) {
+    public synchronized PHLight deleteLightInUse(PHLight light) {
         PHLight toReturn = null;
         for (int i = 0; i < lightsInUse.size(); i++) {
             PHLight l = lightsInUse.get(i);
