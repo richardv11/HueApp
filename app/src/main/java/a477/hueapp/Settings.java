@@ -13,6 +13,7 @@ import android.widget.ImageView;
 
 import com.madrapps.pikolo.HSLColorPicker;
 import com.madrapps.pikolo.listeners.SimpleColorSelectionListener;
+import com.philips.lighting.model.PHLight;
 
 import a477.hueapp.MainPlayer.MainPlayerHelper;
 import a477.hueapp.hue.HueHelper;
@@ -103,6 +104,12 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                     try {
                         mpHelper.stop();
                         hueHelper = mpHelper.getHueHelper();
+                        try {
+                            for (PHLight light : hueHelper.getLightsInUse())
+                                hueHelper.toggleLightOn(light);
+                        } catch (HueHelperException e) {
+                            e.printStackTrace();
+                        }
                         hueHelper.setXY(hueHelper.getNextLight(), f[0], f[1]);
                     } catch (HueHelperException e) {
                         e.printStackTrace();
