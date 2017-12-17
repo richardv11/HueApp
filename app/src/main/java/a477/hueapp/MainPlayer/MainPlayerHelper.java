@@ -161,4 +161,11 @@ public class MainPlayerHelper {
         playerStateManager.setMainPlayerThread(mainPlayerThread);
         mainPlayerThread.start();
     }
+
+    /**
+     * not really the best way.. but for access from Settings
+     */
+    public HueHelper getHueHelper() {
+        return this.hueHelper;
+    }
 }
