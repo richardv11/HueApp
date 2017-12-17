@@ -138,7 +138,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         resideMenu.closeMenu();
     }
 
-    public void stop(View view) {
+    public void stopSavedSong(View view) {
         if (stateManager.getState().equals(SavedRunStates.PLAYING)) {
             stateManager.stopThread();
         } else if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
@@ -157,7 +157,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         }
     }
 
-    public void play(View view) {
+    public void playSavedSong(View view) {
         if (PlayerStateManager.getInstance().getState().equals(PlayerState.STOPPED)) {
             // If we were paused restart the run. Else start a new one.
             if (stateManager.getState().equals(SavedRunStates.PAUSED)) {
@@ -172,7 +172,11 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
         }
     }
 
-    public void pause(View view) {
+    public void pauseSavedSong(View view) {
+        if(PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)){
 
+        } else if(stateManager.getState().equals(SavedRunStates.PLAYING)){
+            stateManager.pauseThread();
+        }
     }
 }
