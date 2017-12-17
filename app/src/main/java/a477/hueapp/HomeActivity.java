@@ -60,7 +60,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
         context = this;
         // Attach menu to current activity, only left side
         resideMenu = new ResideMenu(this);
-        //resideMenu.setBackground(R.drawable.ligh_background);
+        resideMenu.setBackground(R.drawable.ligh_background);
         resideMenu.attachToActivity(this);
         resideMenu.setSwipeDirectionDisable(ResideMenu.DIRECTION_RIGHT);
         resideMenu.setSwipeDirectionDisable(ResideMenu.DIRECTION_LEFT);
