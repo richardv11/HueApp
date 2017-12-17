@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
@@ -82,13 +83,13 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+        playerStateManager = PlayerStateManager.getInstance();
         if (!DEBUG_MODE) {
             mpHelper = MainPlayerHelper.getInstance(getApplicationContext());
             hueHelper = HueHelper.getInstance();
             srHelper = SavedRunsHelper.getInstance(getApplicationContext());
             db = srHelper.getWritableDatabase();
             savedRunStateManager = SavedRunStateManager.getInstance();
-            playerStateManager = PlayerStateManager.getInstance();
 
             // Grab the lights into a map, and populate list using popLightList().
             lightsMap = hueHelper.getLights();

@@ -1,13 +1,19 @@
 package a477.hueapp.MainPlayer;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.util.Log;
+import android.widget.ImageView;
 
 import com.philips.lighting.model.PHLight;
 
 import a477.hueapp.PlayerState;
 import a477.hueapp.PlayerStateManager;
+import a477.hueapp.R;
 import a477.hueapp.hue.HueHelper;
 import a477.hueapp.hue.HueHelperException;
 import a477.hueapp.savedRuns.SavedRunStateManager;
@@ -20,6 +26,8 @@ import be.tarsos.dsp.pitch.PitchDetectionHandler;
 import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class MainPlayerHelper {
 
     private static MainPlayerHelper instance;
@@ -30,6 +38,8 @@ public class MainPlayerHelper {
     private SQLiteDatabase db;
     private AudioDispatcher dispatcher;
     private double pitchInHz;
+    private SharedPreferences sharedpreferences;
+    private final String PREF_NAME = "hue_pref";
 
     private MainPlayerHelper(Context context) {
         hueHelper = HueHelper.getInstance();
@@ -37,6 +47,7 @@ public class MainPlayerHelper {
         db = srHelper.getWritableDatabase();
         playerStateManager = PlayerStateManager.getInstance();
         srStateManager = SavedRunStateManager.getInstance();
+        sharedpreferences = context.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
     }
 
     public static MainPlayerHelper getInstance(Context context) {
@@ -167,5 +178,73 @@ public class MainPlayerHelper {
      */
     public HueHelper getHueHelper() {
         return this.hueHelper;
+    }
+
+    public void save_settings(int[] rgb) {
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putInt("red", rgb[0]);
+        editor.putInt("green", rgb[1]);
+        editor.putInt("blue", rgb[2]);
+        editor.commit();
+    }
+
+    public int[] load_settings() {
+        int red = sharedpreferences.getInt("red", 30);
+        int green = sharedpreferences.getInt("green", 225);
+        int blue = sharedpreferences.getInt("blue", 225);
+
+        return new int[]{red, green, blue};
+    }
+
+    public void changeHueColor(Activity activity, int[] rgb) {
+        int color = Color.argb(255, rgb[0], rgb[1], rgb[2]);
+        rgb[0] = Color.red(color);
+        rgb[1] = Color.green(color);
+        rgb[2] = Color.blue(color);
+        float[] f = convertToXY(rgb[0], rgb[1], rgb[2]);
+        final ImageView imageView = (ImageView) activity.findViewById(R.id.imageView);
+
+        try {
+            stop();
+            try {
+                for (PHLight light : hueHelper.getLightsInUse())
+                    hueHelper.toggleLightOn(light);
+            } catch (HueHelperException e) {
+                e.printStackTrace();
+            }
+            hueHelper.setXY(hueHelper.getNextLight(), f[0], f[1]);
+        } catch (HueHelperException e) {
+            e.printStackTrace();
+        }
+
+        imageView.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+    }
+
+    public void showUserColor(Activity activity, int[] rgb) {
+        final ImageView imageView = (ImageView) activity.findViewById(R.id.imageView);
+        int color = Color.argb(255, rgb[0], rgb[1], rgb[2]);
+        imageView.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+    }
+
+    private float[] convertToXY(float red, float green, float blue) {
+        red /= 255;
+        green /= 255;
+        blue /= 255;
+
+        float r = (red > 0.04045f) ? (float) Math.pow((red + 0.055f) / (1.0f + 0.055f), 2.4f) : (red / 12.92f);
+        float g = (green > 0.04045f) ? (float) Math.pow((green + 0.055f) / (1.0f + 0.055f), 2.4f) : (green / 12.92f);
+        float b = (blue > 0.04045f) ? (float) Math.pow((blue + 0.055f) / (1.0f + 0.055f), 2.4f) : (blue / 12.92f);
+        float X = r * 0.649926f + g * 0.103455f + b * 0.197109f;
+        float Y = r * 0.234327f + g * 0.743075f + b * 0.022598f;
+        float Z = r * 0.0000000f + g * 0.053077f + b * 1.035763f;
+
+        float x = X / (X + Y + Z);
+        float y = Y / (X + Y + Z);
+
+        float[] f = new float[2];
+        f[0] = x;
+        f[1] = y;
+
+        return f;
     }
 }
