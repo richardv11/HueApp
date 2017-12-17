@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private AccessPointListAdapter adapter;
 
     private boolean lastSearchWasIPScan = false;
+    private boolean DEBUG_MODE = false;
 
     @TargetApi(21)
     @Override
@@ -97,7 +98,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             findViewById(R.id.bulb).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startMainActivity();
+                    DEBUG_MODE = true;
+                    startMainActivity(DEBUG_MODE);
                 }
             });
 
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             prefs.setLastConnectedIPAddress(b.getResourceCache().getBridgeConfiguration().getIpAddress());
             prefs.setUsername(username);
             PHWizardAlertDialog.getInstance().closeProgressDialog();
-            startMainActivity();
+            startMainActivity(DEBUG_MODE);
         }
 
         @Override
@@ -303,11 +305,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     // Starting the main activity this way, prevents the PushLink Activity being shown when pressing the back button.
-    public void startMainActivity() {
+    public void startMainActivity(boolean debug) {
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("DEBUG_MODE", true);
+        intent.putExtra("DEBUG_MODE", debug);
         startActivity(intent);
     }
 
