@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 @Override
                 public void onClick(View view) {
                     DEBUG_MODE = true;
-                    startMainActivity(DEBUG_MODE);
+                    startMainActivity();
                 }
             });
 
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             prefs.setLastConnectedIPAddress(b.getResourceCache().getBridgeConfiguration().getIpAddress());
             prefs.setUsername(username);
             PHWizardAlertDialog.getInstance().closeProgressDialog();
-            startMainActivity(DEBUG_MODE);
+            startMainActivity();
         }
 
         @Override
@@ -305,11 +305,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     // Starting the main activity this way, prevents the PushLink Activity being shown when pressing the back button.
-    public void startMainActivity(boolean debug) {
+    public void startMainActivity() {
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("DEBUG_MODE", debug);
+        intent.putExtra("DEBUG_MODE", DEBUG_MODE);
         startActivity(intent);
     }
 

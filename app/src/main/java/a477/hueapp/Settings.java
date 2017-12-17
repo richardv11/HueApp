@@ -7,6 +7,7 @@ import android.graphics.PorterDuff;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -95,6 +96,8 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
                 green = Color.green(color);
                 blue = Color.blue(color);
                 float[] f = convertToXY(red, green, blue);
+                Log.i("SETTINGS_X", String.valueOf(f[0]));
+                Log.i("SETTINGS_Y", String.valueOf(f[1]));
 
                 if (!DEBUG_MODE) {
                     try {
@@ -143,7 +146,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
         editor.commit();
     }
 
-    private float[] convertToXY(int red, int green, int blue) {
+    private float[] convertToXY(float red, float green, float blue) {
         red /= 255;
         green /= 255;
         blue /= 255;
