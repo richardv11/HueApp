@@ -165,11 +165,6 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onPause() {
-        if (playerStateManager.getState().equals(PlayerState.PLAYING)) {
-            playerStateManager.playerPaused();
-        } else if(savedRunStateManager.getState().equals(SavedRunStates.PLAYING)){
-            savedRunStateManager.pauseThread();
-        }
         super.onPause();
     }
 }

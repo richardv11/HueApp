@@ -5,6 +5,7 @@ public class PlayerStateManager {
     private static PlayerStateManager instance;
 
     private PlayerState playerState;
+    private Thread mainPlayerThread;
 
     private PlayerStateManager() {
         playerState = PlayerState.STOPPED;
@@ -36,5 +37,13 @@ public class PlayerStateManager {
         if (PlayerStateManager.getInstance().getState().equals(PlayerState.PLAYING)) {
             playerStopped();
         }
+    }
+
+    public void setMainPlayerThread(Thread mainPlayerThread) {
+        this.mainPlayerThread = mainPlayerThread;
+    }
+
+    public Thread getMainPlayerThread(){
+        return this.mainPlayerThread;
     }
 }
