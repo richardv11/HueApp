@@ -14,12 +14,6 @@ import a477.hueapp.hue.HueHelperException;
 import a477.hueapp.savedRuns.SavedRunStateManager;
 import a477.hueapp.savedRuns.SavedRunStates;
 import a477.hueapp.savedRuns.SavedRunsHelper;
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
-import be.tarsos.dsp.pitch.PitchDetectionHandler;
-import be.tarsos.dsp.pitch.PitchDetectionResult;
-import be.tarsos.dsp.pitch.PitchProcessor;
 
 public class MainPlayerHelper {
 

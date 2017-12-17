@@ -11,12 +11,11 @@ import a477.hueapp.hue.HueHelperException;
 
 public class SavedRunRunner implements Runnable {
     private String run;
-    private HueHelper hueHelper;
     private int startingIndex;
 
     @Override
     public void run() {
-        hueHelper = HueHelper.getInstance();
+        HueHelper hueHelper = HueHelper.getInstance();
         String[] notes = run.split(",");
         int i = 0;
         for (i = startingIndex; i < notes.length; i++) {
