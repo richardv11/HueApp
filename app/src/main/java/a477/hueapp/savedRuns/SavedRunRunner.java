@@ -55,22 +55,24 @@ public class SavedRunRunner implements Runnable {
         }
 
         // If we get to the end of the notes array then we are done with this run
-        if(i == notes.length){
+        if (i == notes.length) {
             SavedRunStateManager.getInstance().playerStopped();
         }
 
-        // Turn off the lights
-        for (PHLight light : hueHelper.getLightsInUse()) {
-            try {
-                hueHelper.toggleLightOff(light);
-            } catch (HueHelperException e) {
-                Log.e("SavedSongs", "run: ", e);
+        // Turn off the lights if we are stopped
+        if (SavedRunStateManager.getInstance().getState().equals(SavedRunStates.STOPPED)) {
+            for (PHLight light : hueHelper.getLightsInUse()) {
+                try {
+                    hueHelper.toggleLightOff(light);
+                } catch (HueHelperException e) {
+                    Log.e("SavedSongs", "run: ", e);
+                }
             }
         }
 
     }
 
-    public SavedRunRunner(String run,int idx) {
+    public SavedRunRunner(String run, int idx) {
         this.run = run;
         this.startingIndex = idx;
     }
