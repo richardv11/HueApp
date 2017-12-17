@@ -33,7 +33,7 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     ResideMenu resideMenu;
     private ResideMenuItem itemSavedSongs;
-    private ResideMenuItem itemSettings;
+    //private ResideMenuItem itemSettings;
     Toolbar toolbar;
     Context context;
 
@@ -67,17 +67,17 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
         // Create menu items
         ResideMenuItem itemHome = new ResideMenuItem(this, R.drawable.home48, "Home");
-        itemSettings = new ResideMenuItem(this, R.drawable.settings48, "Settings");
+        //itemSettings = new ResideMenuItem(this, R.drawable.settings48, "Settings");
         itemSavedSongs = new ResideMenuItem(this, R.drawable.play48, "Saved Songs");
 
         // Add the onClickListener for each menu option
         itemHome.setOnClickListener(this);
-        itemSettings.setOnClickListener(this);
+        //itemSettings.setOnClickListener(this);
         itemSavedSongs.setOnClickListener(this);
 
         // Now add options to the menu
         resideMenu.addMenuItem(itemHome, ResideMenu.DIRECTION_LEFT);
-        resideMenu.addMenuItem(itemSettings, ResideMenu.DIRECTION_LEFT);
+        //resideMenu.addMenuItem(itemSettings, ResideMenu.DIRECTION_LEFT);
         resideMenu.addMenuItem(itemSavedSongs, ResideMenu.DIRECTION_LEFT);
 
         // Listen on the menu click on the toolbar
@@ -118,12 +118,12 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         Intent intent;
-        if (view == itemSettings) {
+        /*if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
             intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
-        }
+        }*/
         if (view == itemSavedSongs) {
             // Saved Songs
             intent = new Intent(this, SavedSongs.class);

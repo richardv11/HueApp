@@ -33,7 +33,7 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
     private final String TAG = "HUE_APP_SavedSongs";
 
     ResideMenu resideMenu;
-    private ResideMenuItem itemHome, itemSettings;
+    private ResideMenuItem itemHome; //, itemSettings;
     Toolbar toolbar;
 
     private boolean DEBUG_MODE;
@@ -68,15 +68,15 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
 
         // Create menu items
         itemHome = new ResideMenuItem(this, R.drawable.home48, "Home");
-        itemSettings = new ResideMenuItem(this, R.drawable.settings48, "Settings");
+        //itemSettings = new ResideMenuItem(this, R.drawable.settings48, "Settings");
 
         // Add the onClickListener for each menu option
         itemHome.setOnClickListener(this);
-        itemSettings.setOnClickListener(this);
+        //itemSettings.setOnClickListener(this);
 
         // Now add options to the menu
         resideMenu.addMenuItem(itemHome, ResideMenu.DIRECTION_LEFT);
-        resideMenu.addMenuItem(itemSettings, ResideMenu.DIRECTION_LEFT);
+        //resideMenu.addMenuItem(itemSettings, ResideMenu.DIRECTION_LEFT);
 
         // Listen on the menu click on the toolbar
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -160,12 +160,12 @@ public class SavedSongs extends AppCompatActivity implements View.OnClickListene
             startActivity(intent);
 
         }
-        if (view == itemSettings) {
+        /*if (view == itemSettings) {
             // Settings
             intent = new Intent(this, Settings.class);
             intent.putExtra("DEBUG_MODE", DEBUG_MODE);
             startActivity(intent);
-        }
+        }*/
         resideMenu.closeMenu();
     }
 
