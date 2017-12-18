@@ -1,0 +1,11 @@
+Reside Menu:
+https://github.com/SpecialCyCi/AndroidResideMenu
+This repository was used as a template for the navigation of our application.
+
+TarsosDSP:
+https://github.com/JorenSix/TarsosDSP
+This library was used to make audio processing much easier.
+
+Hue QuickStart:
+https://github.com/PhilipsHue/PhilipsHueSDK-Java-MultiPlatform-Android
+This github repository was used to assist in getting started with Hue. We adapted the classes that facilitated connecting to the hue bridge to our code.

@@ -6,8 +6,8 @@ import android.content.SharedPreferences.Editor;
 
 public class HueSharedPreferences {
     private static final String HUE_SHARED_PREFERENCES_STORE = "HueSharedPrefs";
-    private static final String LAST_CONNECTED_USERNAME      = "LastConnectedUsername";
-    private static final String LAST_CONNECTED_IP            = "LastConnectedIP";
+    private static final String LAST_CONNECTED_USERNAME = "LastConnectedUsername";
+    private static final String LAST_CONNECTED_IP = "LastConnectedIP";
     private static HueSharedPreferences instance = null;
     private SharedPreferences mSharedPreferences = null;
 
@@ -32,8 +32,7 @@ public class HueSharedPreferences {
 
 
     public String getUsername() {
-        String username = mSharedPreferences.getString(LAST_CONNECTED_USERNAME, "");
-        return username;
+        return mSharedPreferences.getString(LAST_CONNECTED_USERNAME, "");
     }
 
     public boolean setUsername(String username) {

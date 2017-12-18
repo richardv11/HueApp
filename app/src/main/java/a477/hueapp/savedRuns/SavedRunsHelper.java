@@ -35,8 +35,6 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
             " INTEGER PRIMARY KEY AUTOINCREMENT, " + SavedRunContract.SavedRunEntry.RUN_NAME + " TEXT NOT NULL UNIQUE, " +
             SavedRunContract.SavedRunEntry.RUN_PATTERN + " TEXT)";
 
-    private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS " + SavedRunContract.SavedRunEntry.TABLE_NAME;
-
     private static SavedRunsHelper instance;
     private String run;
 
@@ -153,7 +151,6 @@ public class SavedRunsHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_CMD);
-        // TODO: Pre-load a run?
     }
 
     @Override

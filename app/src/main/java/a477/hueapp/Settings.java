@@ -67,9 +67,6 @@ public class Settings extends AppCompatActivity implements View.OnClickListener{
             mpHelper.showUserColor(this, rgb);
         }
 
-        /**
-         * FYI, but I think this may need to check the STATE and current thread to change colors.
-         */
         colorPicker.setColorSelectionListener(new SimpleColorSelectionListener() {
             @Override
             public void onColorSelected(int color) {

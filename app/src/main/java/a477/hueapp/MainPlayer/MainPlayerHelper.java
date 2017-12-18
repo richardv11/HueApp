@@ -45,7 +45,6 @@ public class MainPlayerHelper {
     private double pitchInHz;
     private SharedPreferences sharedpreferences;
     private Context context;
-    private final String PREF_NAME = "hue_pref";
 
     private MainPlayerHelper(Context context) {
         hueHelper = HueHelper.getInstance();
@@ -53,6 +52,7 @@ public class MainPlayerHelper {
         db = srHelper.getWritableDatabase();
         playerStateManager = PlayerStateManager.getInstance();
         srStateManager = SavedRunStateManager.getInstance();
+        String PREF_NAME = "hue_pref";
         sharedpreferences = context.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
     }
 
@@ -182,7 +182,6 @@ public class MainPlayerHelper {
     }
 
     private void createThread() {
-        // 22050, 1024, 0
         dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(48000, 8000, 0);
         PitchDetectionHandler handler = new PitchDetectionHandler() {
             @Override
@@ -238,12 +237,6 @@ public class MainPlayerHelper {
         mainPlayerThread.start();
     }
 
-    /**
-     * not really the best way.. but for access from Settings
-     */
-//    public HueHelper getHueHelper() {
-//        return this.hueHelper;
-//    }
     public void save_settings(int[] rgb) {
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.putInt("red", rgb[0]);

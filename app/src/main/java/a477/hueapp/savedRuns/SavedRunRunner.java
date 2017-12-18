@@ -43,12 +43,7 @@ public class SavedRunRunner implements Runnable {
                 try {
                     Thread.sleep(Long.valueOf("" + duration));
                 } catch (InterruptedException e) {
-                    // TODO: How do we want to handle this? This run method should be done
-                    // TODO: outside of the ui thread for sure. And we can have a start, stop,
-                    // TODO: and pause button similar to the home page. With these we can
-                    // TODO: interrupt the thread this is running on.
                     break;
-//                    e.printStackTrace();
                 }
             }
         }

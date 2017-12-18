@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static android.media.CamcorderProfile.get;
-
-@SuppressWarnings("unused")
 public class HueHelper {
     private final String TAG = "HUE_APP_HueHelper";
     public final String PREFS = "LIGHTS_IN_USE";
@@ -32,9 +29,6 @@ public class HueHelper {
         lightsInUse = new ArrayList<>();
         lightsInUseNames = new ArrayList<>();
         lastLight = 0;
-        // TESTING PURPOSES
-//        lightsInUse.add(getLights().get("3"));
-//        lightsInUse.add(getLights().get("12"));
     }
 
     public static HueHelper getInstance() {
@@ -63,7 +57,7 @@ public class HueHelper {
         else {
             if (lastLight >= lightsInUse.size())
                 lastLight = 0;
-            if(lightsInUse.isEmpty())
+            if (lightsInUse.isEmpty())
                 return null;
             return lightsInUse.get(lastLight++);
         }
@@ -82,14 +76,12 @@ public class HueHelper {
                 light = l;
             }
         }
-        if (light.getLastKnownLightState().isOn())
-            throw new HueHelperException("Light is already on");
-        else {
-            PHLightState lightState = new PHLightState();
-            lightState.setOn(true);
-            Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
-            phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
-        }
+
+        PHLightState lightState = new PHLightState();
+        lightState.setOn(true);
+        Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
+        phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
+
     }
 
     /**
@@ -105,14 +97,11 @@ public class HueHelper {
                 light = l;
             }
         }
-        if (!light.getLastKnownLightState().isOn())
-            throw new HueHelperException("Light is already off");
-        else {
-            PHLightState lightState = new PHLightState();
-            lightState.setOn(false);
-            Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
-            phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
-        }
+
+        PHLightState lightState = new PHLightState();
+        lightState.setOn(false);
+        Log.d(TAG, "toggleLightOn: Toggling Light State: " + lightState.isOn());
+        phHueSDK.getSelectedBridge().updateLightState(light, lightState, lightListener);
     }
 
     /**
@@ -350,12 +339,12 @@ public class HueHelper {
     public synchronized void addLightInUse(PHLight light) {
         lightsInUse.add(light);
         lightsInUseNames.add(light.getName());
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             String tmp = "";
-            for(String lName : lightsInUseNames)
+            for (String lName : lightsInUseNames)
                 tmp += lName + ",";
-            editor.putString(PREFS,tmp.substring(0,tmp.length()-1));
+            editor.putString(PREFS, tmp.substring(0, tmp.length() - 1));
             editor.apply();
         }
     }
@@ -371,31 +360,31 @@ public class HueHelper {
                 break;
             }
         }
-        if(sharedPreferences != null) {
+        if (sharedPreferences != null) {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             String tmp = "";
-            for(String lName : lightsInUseNames)
+            for (String lName : lightsInUseNames)
                 tmp += lName + ",";
-            if(tmp.length() > 0)
-                editor.putString(PREFS,tmp.substring(0,tmp.length()-1));
+            if (tmp.length() > 0)
+                editor.putString(PREFS, tmp.substring(0, tmp.length() - 1));
             else
-                editor.putString(PREFS,tmp);
+                editor.putString(PREFS, tmp);
             editor.apply();
         }
         return toReturn;
     }
 
-    public void rebuildLightsInUse() throws HueHelperException{
-        if(sharedPreferences == null){
+    public void rebuildLightsInUse() throws HueHelperException {
+        if (sharedPreferences == null) {
             throw new HueHelperException("No shared preferences");
         }
         lightsInUse = new ArrayList<>();
         lightsInUseNames = new ArrayList<>();
-        String lightString = sharedPreferences.getString(PREFS,"");
+        String lightString = sharedPreferences.getString(PREFS, "");
         Map<String, PHLight> lights = getLights();
-        for(String light : lightString.split(",")){
-            for(PHLight l : lights.values()){
-                if(l.getName().equals(light)){
+        for (String light : lightString.split(",")) {
+            for (PHLight l : lights.values()) {
+                if (l.getName().equals(light)) {
                     lightsInUse.add(l);
                     lightsInUseNames.add(l.getName());
                 }
